@@ -1,0 +1,25 @@
+# NOTICE
+
+量入为出 / Within
+Copyright 2026 cyhkbl
+
+本产品包含以下第三方组件：
+
+## AndroidX / Jetpack Compose
+Copyright (C) The Android Open Source Project
+Licensed under the Apache License 2.0
+https://developer.android.com/jetpack
+
+## Material Symbols
+Copyright (C) Google LLC
+Licensed under the Apache License 2.0
+https://fonts.google.com/icons
+
+## Kotlin
+Copyright (C) JetBrains s.r.o. and Kotlin Programming Language contributors
+Licensed under the Apache License 2.0
+https://kotlinlang.org
+
+## Room
+Copyright (C) The Android Open Source Project
+Licensed under the Apache License 2.0

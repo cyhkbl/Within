@@ -43,14 +43,17 @@ import io.github.cyhkbl.within.ui.home.HomeScreen
 import io.github.cyhkbl.within.ui.home.HomeViewModel
 import io.github.cyhkbl.within.ui.more.MoreScreen
 import io.github.cyhkbl.within.ui.stats.StatsScreen
+import androidx.compose.ui.res.stringResource
+import androidx.annotation.StringRes
+import io.github.cyhkbl.within.R
 
-private data class Destination(val route: String, val label: String, val icon: String)
+private data class Destination(val route: String, @StringRes val label: Int, val icon: String)
 
 private val destinations = listOf(
-    Destination("home", "账单", "receipt_long"),
-    Destination("stats", "统计", "pie_chart"),
-    Destination("assets", "资产", "account_balance_wallet"),
-    Destination("more", "我的", "menu")
+    Destination("home", R.string.nav_00, "receipt_long"),
+    Destination("stats", R.string.nav_01, "pie_chart"),
+    Destination("assets", R.string.nav_02, "account_balance_wallet"),
+    Destination("more", R.string.nav_03, "menu")
 )
 
 @Composable
@@ -194,7 +197,7 @@ private fun MainShell(
                                 else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         },
-                        label = { Text(dest.label) },
+                        label = { Text(stringResource(dest.label)) },
                         colors = NavigationBarItemDefaults.colors(
                             indicatorColor = MaterialTheme.colorScheme.secondaryContainer
                         )

@@ -57,6 +57,8 @@ import io.github.cyhkbl.within.ui.components.SymbolText
 import io.github.cyhkbl.within.ui.theme.LedgerTheme
 import io.github.cyhkbl.within.util.MoneyUtils
 import kotlinx.coroutines.launch
+import androidx.compose.ui.res.stringResource
+import io.github.cyhkbl.within.R
 
 class AutoRecordActivity : ComponentActivity() {
 
@@ -164,7 +166,7 @@ private fun AutoRecordPrompt(
                         )
                         Spacer(Modifier.width(4.dp))
                         Text(
-                            "自动记账",
+                            stringResource(R.string.autorecord_00),
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
@@ -181,7 +183,7 @@ private fun AutoRecordPrompt(
             Spacer(Modifier.height(14.dp))
 
             Text(
-                text = if (kind == "INCOME") "收到一笔" else "花了这笔",
+                text = if (kind == "INCOME") stringResource(R.string.autorecord_01) else stringResource(R.string.autorecord_02),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -198,7 +200,7 @@ private fun AutoRecordPrompt(
             Spacer(Modifier.height(10.dp))
 
             Text(
-                text = "分类",
+                text = stringResource(R.string.autorecord_03),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -212,7 +214,7 @@ private fun AutoRecordPrompt(
             Spacer(Modifier.height(10.dp))
 
             Text(
-                text = "账户",
+                text = stringResource(R.string.autorecord_04),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -228,7 +230,7 @@ private fun AutoRecordPrompt(
             OutlinedTextField(
                 value = note,
                 onValueChange = { note = it },
-                label = { Text("备注") },
+                label = { Text(stringResource(R.string.autorecord_05)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -236,7 +238,7 @@ private fun AutoRecordPrompt(
             Spacer(Modifier.height(16.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                TextButton(onClick = onCancel) { Text("忽略") }
+                TextButton(onClick = onCancel) { Text(stringResource(R.string.autorecord_06)) }
                 Spacer(Modifier.weight(1f))
                 Button(
                     onClick = {
@@ -263,7 +265,7 @@ private fun AutoRecordPrompt(
                     shape = RoundedCornerShape(50),
                     colors = ButtonDefaults.buttonColors()
                 ) {
-                    Text("确认记账", fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.autorecord_07), fontWeight = FontWeight.SemiBold)
                 }
             }
         }

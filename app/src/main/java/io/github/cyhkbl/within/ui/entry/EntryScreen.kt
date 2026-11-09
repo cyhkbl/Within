@@ -43,6 +43,8 @@ import io.github.cyhkbl.within.ui.components.CategoryGlyph
 import io.github.cyhkbl.within.ui.components.SymbolText
 import io.github.cyhkbl.within.ui.theme.AmountDisplay
 import io.github.cyhkbl.within.util.DateUtils
+import androidx.compose.ui.res.stringResource
+import io.github.cyhkbl.within.R
 
 @Composable
 fun EntryScreen(
@@ -84,11 +86,11 @@ fun EntryScreen(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                KindTab("支出", "EXPENSE", state.kind, onKindChange)
+                KindTab(stringResource(R.string.entry_00), "EXPENSE", state.kind, onKindChange)
                 Spacer(Modifier.width(6.dp))
-                KindTab("收入", "INCOME", state.kind, onKindChange)
+                KindTab(stringResource(R.string.entry_01), "INCOME", state.kind, onKindChange)
                 Spacer(Modifier.width(6.dp))
-                KindTab("转账", "TRANSFER", state.kind, onKindChange)
+                KindTab(stringResource(R.string.entry_02), "TRANSFER", state.kind, onKindChange)
             }
             Box(
                 modifier = Modifier
@@ -128,7 +130,7 @@ fun EntryScreen(
             Box(modifier = Modifier.weight(1f)) {
                 if (state.note.isEmpty()) {
                     Text(
-                        "点此输入备注…",
+                        stringResource(R.string.entry_03),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -158,9 +160,9 @@ fun EntryScreen(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             val account = state.accounts.firstOrNull { it.id == state.accountId }
-            AssistChip(text = account?.name ?: "账户", icon = "account_balance_wallet")
+            AssistChip(text = account?.name ?: stringResource(R.string.entry_04), icon = "account_balance_wallet")
             AssistChip(
-                text = "今天 " + DateUtils.formatTime(state.timestamp),
+                text = stringResource(R.string.entry_05) + DateUtils.formatTime(state.timestamp),
                 icon = "schedule"
             )
             AssistChip(text = "", icon = "sell")
@@ -203,7 +205,7 @@ fun EntryScreen(
                         containerColor = MaterialTheme.colorScheme.primary
                     )
                 ) {
-                    Text("保存", fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.entry_06), fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
         }

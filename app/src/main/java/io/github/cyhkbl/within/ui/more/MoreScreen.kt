@@ -38,19 +38,22 @@ import io.github.cyhkbl.within.ui.io.ImportExportActivity
 import io.github.cyhkbl.within.ui.components.CategoryGlyph
 import io.github.cyhkbl.within.ui.components.SymbolText
 import io.github.cyhkbl.within.ui.theme.ThemePrefs
+import androidx.compose.ui.res.stringResource
+import androidx.annotation.StringRes
+import io.github.cyhkbl.within.R
 
-private data class MoreItem(val icon: String, val title: String, val subtitle: String)
+private data class MoreItem(val icon: String, @StringRes val title: Int, @StringRes val subtitle: Int)
 
 private val items = listOf(
-    MoreItem("notifications_active", "自动记账", "支付完成时自动弹出记账"),
-    MoreItem("label", "分类管理", "增删改一二级分类"),
-    MoreItem("savings", "预算", "月度与分类预算"),
-    MoreItem("event_repeat", "周期记账", "房租、订阅等自动生成"),
-    MoreItem("file_upload", "导入账单", "支付宝、微信账单导入"),
-    MoreItem("file_download", "导出账单", "导出 CSV / Excel"),
-    MoreItem("backup", "备份与恢复", "本地备份"),
-    MoreItem("palette", "外观", "主题、深色模式、动态取色"),
-    MoreItem("info", "关于", "版本与开源许可")
+    MoreItem("notifications_active", R.string.more_00, R.string.more_01),
+    MoreItem("label", R.string.more_02, R.string.more_03),
+    MoreItem("savings", R.string.more_04, R.string.more_05),
+    MoreItem("event_repeat", R.string.more_06, R.string.more_07),
+    MoreItem("file_upload", R.string.more_08, R.string.more_09),
+    MoreItem("file_download", R.string.more_10, R.string.more_11),
+    MoreItem("backup", R.string.more_12, R.string.more_13),
+    MoreItem("palette", R.string.more_14, R.string.more_15),
+    MoreItem("info", R.string.more_16, R.string.more_17)
 )
 
 @Composable
@@ -58,7 +61,7 @@ fun MoreScreen(repo: LedgerRepository) {
     val context = LocalContext.current
     var showAppearance by remember { mutableStateOf(false) }
     var showAbout by remember { mutableStateOf(false) }
-    var showComingSoon by remember { mutableStateOf<String?>(null) }
+    var showComingSoon by remember { mutableStateOf<Int?>(null) }
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -67,9 +70,9 @@ fun MoreScreen(repo: LedgerRepository) {
     ) {
         item {
             Column(modifier = Modifier.padding(top = 16.dp, bottom = 4.dp)) {
-                Text("我的", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.more_18), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
                 Text(
-                    "账本设置与数据管理",
+                    stringResource(R.string.more_19),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -89,17 +92,17 @@ fun MoreScreen(repo: LedgerRepository) {
                                 .fillMaxWidth()
                                 .clickable {
                                     when (item.title) {
-                                        "自动记账" -> context.startActivity(
+                                        R.string.more_20 -> context.startActivity(
                                             android.content.Intent(context, AutoLogSettingsActivity::class.java)
                                         )
-                                        "分类管理" -> context.startActivity(
+                                        R.string.more_21 -> context.startActivity(
                                             android.content.Intent(context, CategoryManageActivity::class.java)
                                         )
-                                        "导入账单", "导出账单", "备份与恢复" -> context.startActivity(
+                                        R.string.more_22, R.string.more_23, R.string.more_24 -> context.startActivity(
                                             android.content.Intent(context, ImportExportActivity::class.java)
                                         )
-                                        "外观" -> showAppearance = true
-                                        "关于" -> showAbout = true
+                                        R.string.more_25 -> showAppearance = true
+                                        R.string.more_26 -> showAbout = true
                                         else -> showComingSoon = item.title
                                     }
                                 }
@@ -109,9 +112,9 @@ fun MoreScreen(repo: LedgerRepository) {
                             CategoryGlyph(icon = item.icon, size = 42.dp)
                             Spacer(Modifier.width(14.dp))
                             Column(modifier = Modifier.weight(1f)) {
-                                Text(item.title, style = MaterialTheme.typography.titleMedium)
+                                Text(stringResource(item.title), style = MaterialTheme.typography.titleMedium)
                                 Text(
-                                    item.subtitle,
+                                    stringResource(item.subtitle),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -143,10 +146,10 @@ fun MoreScreen(repo: LedgerRepository) {
     if (showAbout) {
         AlertDialog(
             onDismissRequest = { showAbout = false },
-            title = { Text("关于") },
+            title = { Text(stringResource(R.string.more_27)) },
             text = {
                 Column {
-                    Text("账本 v0.2.0", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.more_28), style = MaterialTheme.typography.titleMedium)
                     Spacer(Modifier.height(6.dp))
                     Text(
                         "Material 3 Expressive · Jetpack Compose 1.12 · AGP 9.5.1",
@@ -155,24 +158,25 @@ fun MoreScreen(repo: LedgerRepository) {
                     )
                     Spacer(Modifier.height(10.dp))
                     Text(
-                        "数据全部存在本机，没有账号、没有云同步、没有广告。自动记账读的是系统的支付通知和支付结果页，内容不会被上传。",
+                        stringResource(R.string.more_29),
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
             },
             confirmButton = {
-                TextButton(onClick = { showAbout = false }) { Text("知道了") }
+                TextButton(onClick = { showAbout = false }) { Text(stringResource(R.string.more_30)) }
             }
         )
     }
 
-    showComingSoon?.let { title ->
+    showComingSoon?.let { titleRes ->
+        val titleText = stringResource(titleRes)
         AlertDialog(
             onDismissRequest = { showComingSoon = null },
-            title = { Text(title) },
-            text = { Text("「$title」还在开发中，下一个版本会补上。") },
+            title = { Text(titleText) },
+            text = { Text(stringResource(R.string.more_coming_soon, titleText)) },
             confirmButton = {
-                TextButton(onClick = { showComingSoon = null }) { Text("好") }
+                TextButton(onClick = { showComingSoon = null }) { Text(stringResource(R.string.more_31)) }
             }
         )
     }
@@ -185,19 +189,19 @@ private fun AppearanceDialog(onDismiss: () -> Unit) {
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("外观") },
+        title = { Text(stringResource(R.string.more_32)) },
         text = {
             Column {
                 Text(
-                    "主题",
+                    stringResource(R.string.more_33),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(Modifier.height(4.dp))
                 listOf(
-                    ThemePrefs.MODE_SYSTEM to "跟随系统",
-                    ThemePrefs.MODE_LIGHT to "浅色",
-                    ThemePrefs.MODE_DARK to "深色"
+                    ThemePrefs.MODE_SYSTEM to stringResource(R.string.more_34),
+                    ThemePrefs.MODE_LIGHT to stringResource(R.string.more_35),
+                    ThemePrefs.MODE_DARK to stringResource(R.string.more_36)
                 ).forEach { (value, label) ->
                     Row(
                         modifier = Modifier
@@ -217,9 +221,9 @@ private fun AppearanceDialog(onDismiss: () -> Unit) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("动态取色", style = MaterialTheme.typography.bodyLarge)
+                        Text(stringResource(R.string.more_37), style = MaterialTheme.typography.bodyLarge)
                         Text(
-                            "用系统壁纸的颜色生成主题色",
+                            stringResource(R.string.more_38),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -229,7 +233,7 @@ private fun AppearanceDialog(onDismiss: () -> Unit) {
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text("完成") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.more_39)) }
         }
     )
 }

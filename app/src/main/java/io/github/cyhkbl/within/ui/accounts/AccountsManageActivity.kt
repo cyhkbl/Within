@@ -51,15 +51,18 @@ import io.github.cyhkbl.within.ui.components.SymbolText
 import io.github.cyhkbl.within.ui.theme.LedgerTheme
 import io.github.cyhkbl.within.util.MoneyUtils
 import kotlinx.coroutines.launch
+import androidx.compose.ui.res.stringResource
+import androidx.annotation.StringRes
+import io.github.cyhkbl.within.R
 
-private data class AccountType(val key: String, val label: String, val icon: String)
+private data class AccountType(val key: String, @StringRes val label: Int, val icon: String)
 
 private val accountTypes = listOf(
-    AccountType("CASH", "现金", "payments"),
-    AccountType("WALLET", "钱包", "account_balance_wallet"),
-    AccountType("BANK", "银行卡", "account_balance"),
-    AccountType("CREDIT", "信用卡", "credit_card"),
-    AccountType("INVEST", "投资", "trending_up")
+    AccountType("CASH", R.string.accounts_00, "payments"),
+    AccountType("WALLET", R.string.accounts_01, "account_balance_wallet"),
+    AccountType("BANK", R.string.accounts_02, "account_balance"),
+    AccountType("CREDIT", R.string.accounts_03, "credit_card"),
+    AccountType("INVEST", R.string.accounts_04, "trending_up")
 )
 
 class AccountsManageActivity : ComponentActivity() {
@@ -117,11 +120,11 @@ private fun AccountsManageScreen(repo: LedgerRepository, onBack: () -> Unit) {
                     ) {
                         SymbolText("arrow_back", size = 20.dp)
                         Spacer(Modifier.width(6.dp))
-                        Text("返回")
+                        Text(stringResource(R.string.accounts_05))
                     }
                 }
                 Spacer(Modifier.weight(1f))
-                Text("账户管理", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.accounts_06), style = MaterialTheme.typography.titleMedium)
             }
 
             Surface(
@@ -131,7 +134,7 @@ private fun AccountsManageScreen(repo: LedgerRepository, onBack: () -> Unit) {
             ) {
                 Column(modifier = Modifier.padding(18.dp)) {
                     Text(
-                        "净资产",
+                        stringResource(R.string.accounts_07),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.75f)
                     )
@@ -164,7 +167,7 @@ private fun AccountsManageScreen(repo: LedgerRepository, onBack: () -> Unit) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(account.name, style = MaterialTheme.typography.bodyLarge)
                             Text(
-                                accountTypes.firstOrNull { it.key == account.type }?.label ?: account.type,
+                                accountTypes.firstOrNull { it.key == account.type }?.let { stringResource(it.label) } ?: account.type,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -175,7 +178,7 @@ private fun AccountsManageScreen(repo: LedgerRepository, onBack: () -> Unit) {
                         )
                         Spacer(Modifier.width(8.dp))
                         TextButton(onClick = { pendingDelete = account }) {
-                            Text("删除", color = MaterialTheme.colorScheme.error)
+                            Text(stringResource(R.string.accounts_08), color = MaterialTheme.colorScheme.error)
                         }
                     }
                     HorizontalDivider(
@@ -202,7 +205,7 @@ private fun AccountsManageScreen(repo: LedgerRepository, onBack: () -> Unit) {
     pendingDelete?.let { target ->
         AlertDialog(
             onDismissRequest = { pendingDelete = null },
-            title = { Text("删除账户") },
+            title = { Text(stringResource(R.string.accounts_09)) },
             text = { Text("确定删除「${target.name}」？已经记在这上面的账单不会消失，账户余额也不再计入净资产。") },
             confirmButton = {
                 Button(
@@ -213,9 +216,9 @@ private fun AccountsManageScreen(repo: LedgerRepository, onBack: () -> Unit) {
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.error
                     )
-                ) { Text("删除") }
+                ) { Text(stringResource(R.string.accounts_10)) }
             },
-            dismissButton = { TextButton(onClick = { pendingDelete = null }) { Text("取消") } }
+            dismissButton = { TextButton(onClick = { pendingDelete = null }) { Text(stringResource(R.string.accounts_11)) } }
         )
     }
 }
@@ -232,16 +235,17 @@ private fun AccountEditorDialog(
         mutableStateOf(MoneyUtils.formatPlain(initial?.balance ?: 0L))
     }
     val isNew = initial == null
+    val fallbackName = stringResource(R.string.accounts_18)
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (isNew) "新建账户" else "编辑账户") },
+        title = { Text(if (isNew) stringResource(R.string.accounts_12) else stringResource(R.string.accounts_13)) },
         text = {
             Column {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("名称") },
+                    label = { Text(stringResource(R.string.accounts_14)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -249,7 +253,7 @@ private fun AccountEditorDialog(
                 OutlinedTextField(
                     value = balanceText,
                     onValueChange = { balanceText = it.filter { c -> c.isDigit() || c == '.' || c == '-' } },
-                    label = { Text(if (isNew) "初始余额" else "余额") },
+                    label = { Text(if (isNew) stringResource(R.string.accounts_15) else stringResource(R.string.accounts_16)) },
                     prefix = { Text("¥") },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
@@ -257,7 +261,7 @@ private fun AccountEditorDialog(
                 )
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    "类型",
+                    stringResource(R.string.accounts_17),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -273,7 +277,7 @@ private fun AccountEditorDialog(
                                 .clickable { type = t.key }
                         ) {
                             Text(
-                                t.label,
+                                stringResource(t.label),
                                 style = MaterialTheme.typography.labelLarge,
                                 color = if (t.key == type) MaterialTheme.colorScheme.onPrimary
                                 else MaterialTheme.colorScheme.onSurfaceVariant,
@@ -291,15 +295,15 @@ private fun AccountEditorDialog(
                     val base = initial ?: AccountEntity(name = name, type = type)
                     onSave(
                         base.copy(
-                            name = name.trim().ifBlank { "未命名账户" },
+                            name = name.trim().ifBlank { fallbackName },
                             type = type,
                             balance = cents
                         )
                     )
                 },
                 enabled = name.isNotBlank()
-            ) { Text("保存") }
+            ) { Text(stringResource(R.string.accounts_19)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } }
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.accounts_20)) } }
     )
 }

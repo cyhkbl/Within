@@ -51,6 +51,8 @@ import io.github.cyhkbl.within.ui.theme.IncomeGreen
 import io.github.cyhkbl.within.util.DateUtils
 import io.github.cyhkbl.within.util.MoneyUtils
 import kotlinx.coroutines.launch
+import androidx.compose.ui.res.stringResource
+import io.github.cyhkbl.within.R
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -76,6 +78,7 @@ fun TransactionDetailScreen(
         value = repo.refundsOf(txId)
     }
 
+    val refundNotePrefix = stringResource(R.string.detail_26)
     var confirmedDelete by remember { mutableStateOf(false) }
     var showRefundDialog by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -89,7 +92,7 @@ fun TransactionDetailScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("账单不存在或已被删除", style = MaterialTheme.typography.bodyLarge)
+            Text(stringResource(R.string.detail_00), style = MaterialTheme.typography.bodyLarge)
         }
         return
     }
@@ -124,11 +127,11 @@ fun TransactionDetailScreen(
                 ) {
                     SymbolText("arrow_back", size = 20.dp)
                     Spacer(Modifier.width(6.dp))
-                    Text("返回")
+                    Text(stringResource(R.string.detail_01))
                 }
             }
             Spacer(Modifier.weight(1f))
-            Text("账单详情", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.detail_02), style = MaterialTheme.typography.titleMedium)
         }
 
         Surface(
@@ -141,12 +144,12 @@ fun TransactionDetailScreen(
                     CategoryGlyph(icon = category?.icon ?: "category", size = 48.dp)
                     Spacer(Modifier.width(14.dp))
                     Column {
-                        Text(category?.name ?: "未分类", style = MaterialTheme.typography.titleLarge)
+                        Text(category?.name ?: stringResource(R.string.detail_03), style = MaterialTheme.typography.titleLarge)
                         Text(
                             when (current.kind) {
-                                "INCOME" -> "收入"
-                                "TRANSFER" -> "转账"
-                                else -> "支出"
+                                "INCOME" -> stringResource(R.string.detail_04)
+                                "TRANSFER" -> stringResource(R.string.detail_05)
+                                else -> stringResource(R.string.detail_06)
                             },
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -166,7 +169,7 @@ fun TransactionDetailScreen(
                 if (refunded > 0) {
                     Spacer(Modifier.height(6.dp))
                     Text(
-                        "已退 " + MoneyUtils.format(refunded) + "，剩余 " +
+                        stringResource(R.string.detail_07) + MoneyUtils.format(refunded) + stringResource(R.string.detail_08) +
                             MoneyUtils.format(current.amount - refunded),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.primary
@@ -183,29 +186,29 @@ fun TransactionDetailScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(modifier = Modifier.padding(vertical = 6.dp)) {
-                DetailRow("账户", account?.name ?: "-")
+                DetailRow(stringResource(R.string.detail_09), account?.name ?: "-")
                 HorizontalDivider(
                     modifier = Modifier.padding(horizontal = 18.dp),
                     color = MaterialTheme.colorScheme.outlineVariant
                 )
-                DetailRow("时间", DateUtils.formatDateTime(current.timestamp))
+                DetailRow(stringResource(R.string.detail_10), DateUtils.formatDateTime(current.timestamp))
                 HorizontalDivider(
                     modifier = Modifier.padding(horizontal = 18.dp),
                     color = MaterialTheme.colorScheme.outlineVariant
                 )
-                DetailRow("备注", current.note.ifBlank { "无" })
+                DetailRow(stringResource(R.string.detail_11), current.note.ifBlank { stringResource(R.string.detail_12) })
                 if (current.source != "MANUAL") {
                     HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 18.dp),
                         color = MaterialTheme.colorScheme.outlineVariant
                     )
                     DetailRow(
-                        "来源",
+                        stringResource(R.string.detail_13),
                         when (current.source) {
-                            "REFUND" -> "退款"
-                            "IMPORT" -> "导入"
-                            "PERIODIC" -> "周期记账"
-                            "AUTO" -> "自动记账" + (current.sourcePackage?.let { " · $it" } ?: "")
+                            "REFUND" -> stringResource(R.string.detail_14)
+                            "IMPORT" -> stringResource(R.string.detail_15)
+                            "PERIODIC" -> stringResource(R.string.detail_16)
+                            "AUTO" -> stringResource(R.string.detail_17) + (current.sourcePackage?.let { " · $it" } ?: "")
                             else -> current.source
                         }
                     )
@@ -216,7 +219,7 @@ fun TransactionDetailScreen(
         if (refunds.isNotEmpty()) {
             Spacer(Modifier.height(12.dp))
             Text(
-                "退款记录",
+                stringResource(R.string.detail_18),
                 style = MaterialTheme.typography.titleSmall,
                 modifier = Modifier.padding(start = 4.dp, bottom = 6.dp)
             )
@@ -257,7 +260,7 @@ fun TransactionDetailScreen(
                                         reloadTick++
                                     }
                                 }
-                            ) { Text("撤销") }
+                            ) { Text(stringResource(R.string.detail_19)) }
                         }
                         if (index != refunds.lastIndex) {
                             HorizontalDivider(
@@ -284,7 +287,7 @@ fun TransactionDetailScreen(
             ) {
                 SymbolText("undo", size = 20.dp, color = MaterialTheme.colorScheme.onPrimaryContainer)
                 Spacer(Modifier.width(8.dp))
-                Text("退款", fontWeight = FontWeight.Medium, fontSize = 16.sp)
+                Text(stringResource(R.string.detail_20), fontWeight = FontWeight.Medium, fontSize = 16.sp)
             }
             Spacer(Modifier.height(10.dp))
         }
@@ -292,11 +295,11 @@ fun TransactionDetailScreen(
         if (confirmedDelete) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    "确定删除这笔账单？",
+                    stringResource(R.string.detail_21),
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.weight(1f)
                 )
-                OutlinedButton(onClick = { confirmedDelete = false }) { Text("取消") }
+                OutlinedButton(onClick = { confirmedDelete = false }) { Text(stringResource(R.string.detail_22)) }
                 Spacer(Modifier.width(8.dp))
                 Button(
                     onClick = {
@@ -308,7 +311,7 @@ fun TransactionDetailScreen(
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.error
                     )
-                ) { Text("删除") }
+                ) { Text(stringResource(R.string.detail_23)) }
             }
         } else {
             Button(
@@ -320,7 +323,7 @@ fun TransactionDetailScreen(
                     contentColor = MaterialTheme.colorScheme.onErrorContainer
                 )
             ) {
-                Text("删除这笔", fontWeight = FontWeight.Medium, fontSize = 16.sp)
+                Text(stringResource(R.string.detail_24), fontWeight = FontWeight.Medium, fontSize = 16.sp)
             }
         }
 
@@ -341,7 +344,7 @@ fun TransactionDetailScreen(
                             amount = cents,
                             categoryId = refundCategory?.id,
                             accountId = current.accountId,
-                            note = "退款：" + (current.note.ifBlank { category?.name ?: "" }),
+                            note = refundNotePrefix + (current.note.ifBlank { category?.name ?: "" }),
                             timestamp = System.currentTimeMillis(),
                             source = "REFUND",
                             refundedFromId = current.id,
@@ -368,11 +371,11 @@ private fun RefundDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("退款") },
+        title = { Text(stringResource(R.string.detail_27)) },
         text = {
             Column {
                 Text(
-                    "最多可退 " + MoneyUtils.format(maxRefundable),
+                    stringResource(R.string.detail_28) + MoneyUtils.format(maxRefundable),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -388,7 +391,7 @@ private fun RefundDialog(
                 if (!valid && input.isNotBlank()) {
                     Spacer(Modifier.height(6.dp))
                     Text(
-                        "金额需在 0 到可退金额之间",
+                        stringResource(R.string.detail_29),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.error
                     )
@@ -397,11 +400,11 @@ private fun RefundDialog(
         },
         confirmButton = {
             Button(onClick = { if (valid) onConfirm(cents) }, enabled = valid) {
-                Text("确认退款")
+                Text(stringResource(R.string.detail_30))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("取消") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.detail_31)) }
         }
     )
 }

@@ -53,6 +53,8 @@ import io.github.cyhkbl.within.ui.components.CategoryGlyph
 import io.github.cyhkbl.within.ui.components.SymbolText
 import io.github.cyhkbl.within.ui.theme.LedgerTheme
 import kotlinx.coroutines.launch
+import androidx.compose.ui.res.stringResource
+import io.github.cyhkbl.within.R
 
 /** 分类图标候选，名字都是 Material Symbols 的 ligature。 */
 private val iconChoices = listOf(
@@ -122,16 +124,16 @@ private fun CategoryManageScreen(repo: LedgerRepository, onBack: () -> Unit) {
                     ) {
                         SymbolText("arrow_back", size = 20.dp)
                         Spacer(Modifier.width(6.dp))
-                        Text("返回")
+                        Text(stringResource(R.string.category_00))
                     }
                 }
                 Spacer(Modifier.weight(1f))
-                Text("分类管理", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.category_01), style = MaterialTheme.typography.titleMedium)
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                KindChip("支出", kind == "EXPENSE") { kind = "EXPENSE" }
-                KindChip("收入", kind == "INCOME") { kind = "INCOME" }
+                KindChip(stringResource(R.string.category_02), kind == "EXPENSE") { kind = "EXPENSE" }
+                KindChip(stringResource(R.string.category_03), kind == "INCOME") { kind = "INCOME" }
             }
 
             Spacer(Modifier.height(12.dp))
@@ -178,7 +180,7 @@ private fun CategoryManageScreen(repo: LedgerRepository, onBack: () -> Unit) {
                                 Text(child.name, style = MaterialTheme.typography.bodyLarge)
                                 Spacer(Modifier.weight(1f))
                                 TextButton(onClick = { pendingDelete = child }) {
-                                    Text("删除", color = MaterialTheme.colorScheme.error)
+                                    Text(stringResource(R.string.category_04), color = MaterialTheme.colorScheme.error)
                                 }
                             }
                         }
@@ -205,7 +207,7 @@ private fun CategoryManageScreen(repo: LedgerRepository, onBack: () -> Unit) {
     pendingDelete?.let { target ->
         AlertDialog(
             onDismissRequest = { pendingDelete = null },
-            title = { Text("删除分类") },
+            title = { Text(stringResource(R.string.category_05)) },
             text = {
                 Text("确定删除「${target.name}」？已经用它记过的账单不会消失，但会变成未分类。")
             },
@@ -220,10 +222,10 @@ private fun CategoryManageScreen(repo: LedgerRepository, onBack: () -> Unit) {
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.error
                     )
-                ) { Text("删除") }
+                ) { Text(stringResource(R.string.category_06)) }
             },
             dismissButton = {
-                TextButton(onClick = { pendingDelete = null }) { Text("取消") }
+                TextButton(onClick = { pendingDelete = null }) { Text(stringResource(R.string.category_07)) }
             }
         )
     }
@@ -277,9 +279,9 @@ private fun CategoryRow(
                 )
             }
         }
-        TextButton(onClick = onAddChild) { Text("加子类") }
+        TextButton(onClick = onAddChild) { Text(stringResource(R.string.category_08)) }
         TextButton(onClick = onDelete) {
-            Text("删除", color = MaterialTheme.colorScheme.error)
+            Text(stringResource(R.string.category_09), color = MaterialTheme.colorScheme.error)
         }
     }
     HorizontalDivider(
@@ -299,6 +301,7 @@ private fun CategoryEditorDialog(
     var name by remember { mutableStateOf(initial?.name ?: "") }
     var icon by remember { mutableStateOf(initial?.icon ?: "category") }
     val isNew = initial == null || initial.id == 0L
+    val fallbackName = stringResource(R.string.category_14)
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -306,8 +309,8 @@ private fun CategoryEditorDialog(
             Text(
                 when {
                     initial?.parentId != null -> "新建子分类（父：$parentName）"
-                    isNew -> "新建分类"
-                    else -> "编辑分类"
+                    isNew -> stringResource(R.string.category_10)
+                    else -> stringResource(R.string.category_11)
                 }
             )
         },
@@ -316,13 +319,13 @@ private fun CategoryEditorDialog(
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("名称") },
+                    label = { Text(stringResource(R.string.category_12)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    "图标",
+                    stringResource(R.string.category_13),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -357,15 +360,15 @@ private fun CategoryEditorDialog(
                     val base = initial ?: CategoryEntity(name = name, kind = kind, icon = icon)
                     onSave(
                         base.copy(
-                            name = name.trim().ifBlank { "未命名" },
+                            name = name.trim().ifBlank { fallbackName },
                             icon = icon,
                             kind = kind
                         )
                     )
                 },
                 enabled = name.isNotBlank()
-            ) { Text("保存") }
+            ) { Text(stringResource(R.string.category_15)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } }
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.category_16)) } }
     )
 }

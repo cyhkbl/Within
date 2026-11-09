@@ -46,6 +46,8 @@ import io.github.cyhkbl.within.LedgerApp
 import io.github.cyhkbl.within.ui.components.CategoryGlyph
 import io.github.cyhkbl.within.ui.components.SymbolText
 import io.github.cyhkbl.within.ui.theme.LedgerTheme
+import androidx.compose.ui.res.stringResource
+import io.github.cyhkbl.within.R
 
 class AutoLogSettingsActivity : ComponentActivity() {
 
@@ -55,6 +57,9 @@ class AutoLogSettingsActivity : ComponentActivity() {
         val repo = (application as LedgerApp).repo
         setContent {
             LedgerTheme {
+                val testMerchant = stringResource(R.string.autolog_00)
+                val testAccount = stringResource(R.string.autolog_01)
+                val testRaw = stringResource(R.string.autolog_02)
                 androidx.compose.material3.Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -67,10 +72,10 @@ class AutoLogSettingsActivity : ComponentActivity() {
                                 PaymentDraft(
                                     amount = 2880L,
                                     kind = "EXPENSE",
-                                    merchant = "测试商户（手动触发）",
-                                    accountHint = "微信",
+                                    merchant = testMerchant,
+                                    accountHint = testAccount,
                                     sourcePackage = "com.tencent.mm",
-                                    rawText = "手动测试：支付成功 ¥28.80",
+                                    rawText = testRaw,
                                     timestamp = System.currentTimeMillis(),
                                     fingerprint = "test-" + System.currentTimeMillis()
                                 )
@@ -130,9 +135,9 @@ private fun AutoLogSettingsScreen(
                 }
                 Spacer(Modifier.width(12.dp))
                 Column {
-                    Text("自动记账", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.autolog_03), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
                     Text(
-                        "支付完成后自动弹出记账，只需点确认",
+                        stringResource(R.string.autolog_04),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -148,13 +153,13 @@ private fun AutoLogSettingsScreen(
             ) {
                 Column(modifier = Modifier.padding(20.dp)) {
                     Text(
-                        "工作原理",
+                        stringResource(R.string.autolog_05),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                     Spacer(Modifier.height(6.dp))
                     Text(
-                        "两条独立的检测线：一条读微信/支付宝的支付通知，一条在支付结果页上读金额。任一命中就生成草稿，弹窗已经把金额、账户、分类、备注填好，你只需要确认。",
+                        stringResource(R.string.autolog_06),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f)
                     )
@@ -164,7 +169,7 @@ private fun AutoLogSettingsScreen(
 
         item {
             Text(
-                "需要的授权",
+                stringResource(R.string.autolog_07),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(top = 4.dp)
             )
@@ -179,10 +184,10 @@ private fun AutoLogSettingsScreen(
                 Column(modifier = Modifier.padding(vertical = 6.dp)) {
                     PermissionRow(
                         icon = "notifications",
-                        title = "通知使用权",
-                        subtitle = if (notificationGranted) "已开启" else "读取支付通知，推荐方式",
+                        title = stringResource(R.string.autolog_08),
+                        subtitle = if (notificationGranted) stringResource(R.string.autolog_09) else stringResource(R.string.autolog_10),
                         granted = notificationGranted,
-                        actionLabel = if (notificationGranted) "已开启" else "去开启"
+                        actionLabel = if (notificationGranted) stringResource(R.string.autolog_11) else stringResource(R.string.autolog_12)
                     ) {
                         context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
                     }
@@ -192,10 +197,10 @@ private fun AutoLogSettingsScreen(
                     )
                     PermissionRow(
                         icon = "accessibility",
-                        title = "无障碍服务",
-                        subtitle = if (accessibilityGranted) "已开启" else "通知被关闭时的兜底",
+                        title = stringResource(R.string.autolog_13),
+                        subtitle = if (accessibilityGranted) stringResource(R.string.autolog_14) else stringResource(R.string.autolog_15),
                         granted = accessibilityGranted,
-                        actionLabel = if (accessibilityGranted) "已开启" else "去开启"
+                        actionLabel = if (accessibilityGranted) stringResource(R.string.autolog_16) else stringResource(R.string.autolog_17)
                     ) {
                         context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
                     }
@@ -205,10 +210,10 @@ private fun AutoLogSettingsScreen(
                     )
                     PermissionRow(
                         icon = "picture_in_picture",
-                        title = "悬浮窗权限",
-                        subtitle = if (overlayGranted) "已开启" else "让弹窗能在其它应用之上出现",
+                        title = stringResource(R.string.autolog_18),
+                        subtitle = if (overlayGranted) stringResource(R.string.autolog_19) else stringResource(R.string.autolog_20),
                         granted = overlayGranted,
-                        actionLabel = if (overlayGranted) "已开启" else "去开启"
+                        actionLabel = if (overlayGranted) stringResource(R.string.autolog_21) else stringResource(R.string.autolog_22)
                     ) {
                         val intent = Intent(
                             Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
@@ -230,11 +235,11 @@ private fun AutoLogSettingsScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         SymbolText("science", size = 22.dp, color = MaterialTheme.colorScheme.primary)
                         Spacer(Modifier.width(8.dp))
-                        Text("试一下", style = MaterialTheme.typography.titleMedium)
+                        Text(stringResource(R.string.autolog_23), style = MaterialTheme.typography.titleMedium)
                     }
                     Spacer(Modifier.height(6.dp))
                     Text(
-                        "手动触发一次「¥28.80 微信支付」的模拟草稿，看看弹窗长什么样。不会真的记账，除非你点确认。",
+                        stringResource(R.string.autolog_24),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -244,7 +249,7 @@ private fun AutoLogSettingsScreen(
                         shape = RoundedCornerShape(50),
                         colors = ButtonDefaults.buttonColors()
                     ) {
-                        Text("触发一次测试")
+                        Text(stringResource(R.string.autolog_25))
                     }
                 }
             }
@@ -252,7 +257,7 @@ private fun AutoLogSettingsScreen(
 
         item {
             Text(
-                "支持检测的应用：微信、支付宝、淘宝、京东、美团、饿了么、拼多多。其它应用出现支付结果页时，无障碍这条线也会尝试识别。",
+                stringResource(R.string.autolog_26),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

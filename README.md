@@ -1,88 +1,116 @@
-# 账本（Ledger）
+<div align="center">
 
-对标「钱迹」的 Android 记账应用，核心差异化是**支付完成后自动弹出预填好的记账卡片**。
+<img src="docs/screenshots/01-home.png" width="200" alt="Home" />
+<img src="docs/screenshots/02-entry.png" width="200" alt="Add entry" />
+<img src="docs/screenshots/04-refund.png" width="200" alt="Refund" />
+<img src="docs/screenshots/03-appearance.png" width="200" alt="Appearance" />
 
-## 当前状态
+# 量入为出 · Within
 
-能编译出 debug APK（约 17 MB），**尚未在真机上台过**（开发过程中手机断连）。第一优先级的验证是装上去跑一遍主流程。
+**一个不联网的个人记账应用。支付完成时自动弹出记账，你只需要点确认。**
+
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+![minSdk](https://img.shields.io/badge/minSdk-26-green.svg)
+
+</div>
+
+---
+
+## 这是一个什么样的应用
+
+**量入为出（Within）** 是一款个人记账应用。它和「钱迹」这类产品瞄准同一件事：把每天的收支记清楚，然后让你看清钱去了哪里。
+
+它有两处不同：
+
+1. **没有账号、没有服务器、没有云同步。** 所有数据存在你自己的手机上，代码全在这里，可以自己编译。
+2. **支付完成后自动记账。** 你在微信、支付宝、淘宝、外卖应用完成支付，应用会弹出一张已经填好金额、账户、分类、备注的卡片，你只需要点「确认」。不满意的地方可以当场改。
+
+## 功能
+
+| 模块 | 状态 |
+|---|---|
+| 记一笔（支出 / 收入 / 转账） | 已完成 |
+| 首页月度汇总、最近 7 日柱状图、按日分组账单 | 已完成 |
+| 账单详情、删除 | 已完成 |
+| 退款（部分 / 全额、多次、可撤销） | 已完成 |
+| 日历视图 | 已完成 |
+| 统计（分类排行、占比） | 已完成 |
+| 资产（多账户、净资产） | 已完成 |
+| 账户管理（增删改、类型、余额） | 已完成 |
+| 分类管理（增删改、二级分类、图标） | 已完成 |
+| 导入导出 CSV（兼容钱迹格式） | 已完成 |
+| 自动记账（通知监听 + 无障碍） | 已完成 |
+| Material 3 Expressive 主题、深色模式、动态取色 | 已完成 |
+| 预算 / 周期记账 / 标签 / 多账本 / 报销 / 小组件 / 密码保护 | 计划中 |
+
+## 自动记账是怎么工作的
+
+应用开了两条互相独立的检测线，任一条命中就会生成一张待确认的草稿：
+
+1. **通知监听**（推荐）：读微信、支付宝、淘宝、京东、美团、饿了么、拼多多的支付通知，从文本里解析金额、收支方向和收款方。
+2. **无障碍服务**（兜底）：通知被折叠或关闭时，直接在支付结果页上读「支付成功」这类强信号和金额。
+
+草稿会弹在屏幕底部，金额、账户、分类、备注都已经填好。点「确认」才真的记账，点「忽略」就丢弃。
+
+需要三个权限：通知使用权、无障碍服务、悬浮窗。
+
+想先看看效果？设置里有「触发一次测试」，会生成一张 ¥28.80 的模拟草稿，不会真的记账。
+
+**已知限制：**
+
+- 解析基于规则（正则 + 关键词），没有用模型。不同机型、不同版本的微信/支付宝通知文案可能不一样，遇到没识别出来的情况，欢迎提 issue 并附上通知全文。
+- 只覆盖中国大陆常用支付应用。其它应用可以走无障碍那条线，但不保证。
+- 支付密码、验证码、银行类应用不在监听范围内，也不应该被自动处理。
 
 ## 技术栈
 
 | 项 | 版本 |
 |---|---|
-| Kotlin | AGP 9 内置（不再单独挂 KGP） |
+| Kotlin | AGP 9 内置 |
 | AGP | 9.5.1 |
-| Gradle | 9.9（wrapper） |
+| Gradle | 9.9 |
 | Compose BOM | 2026.09.00（Compose 1.12） |
-| Material3 | 1.5.0-rc01（官方 Expressive API） |
-| Room | 2.8.5（KSP 2.3.13） |
+| Material3 | 1.5.0-rc01，官方 Expressive API |
+| Room | 2.8.5 |
 | compileSdk / targetSdk / minSdk | 37 / 37 / 26 |
 
-依赖走阿里云镜像（Maven Central 对 Kotlin 编译器会 301 到 GitHub，而 GitHub 经代理常 504）。
+几个实现上的选择：
 
-AGP 9 的两处构建方式变化：
-- 内置 Kotlin 支持，**不能**再应用 `org.jetbrains.kotlin.android`，否则构建直接失败；
-- Compose 编译器插件仍需显式声明 `org.jetbrains.kotlin.plugin.compose`。
-
-## 已实现
-
-**记账核心**
-- 首页：月支出/收入/结余/总资产卡片、最近 7 日柱状、按日分组的账单流
-- 记一笔：支出/收入/转账切换（分类区随收支类型刷新）、分类网格、自绘金额键盘、备注、账户/时间
-- 账单详情：金额、分类、账户、时间、备注、来源、删除
-- 退款：对支出账单部分/全额退款，生成关联的收入记录，支持撤销、多笔累加
-- 统计：本月总支出、分类排行（条形占比）
-- 资产：账户列表与净资产
-- 日历视图：月网格每日收支小计，点某天展开当天账单
-- 我的：设置入口列表
-
-**导入导出**
-- 导出 CSV，列顺序按钱迹习惯：`时间,类型,金额,分类,账户,备注,标签,币种,手续费`
-- 导入按表头名字匹配（不依赖列顺序），分类和账户不存在时自动创建
-- 走 SAF 选文件，导入前有预览和条数确认
-
-**自动记账**
-- `PaymentNotificationService`：读微信/支付宝/淘宝/京东/美团/饿了么/拼多多的通知
-- `PaymentAccessibilityService`：在支付结果页读「支付成功」等强信号（兜底）
-- `PaymentParser`：金额正则、收支方向判断、商户提取、指纹去重（同来源同金额同商户同分钟只算一次）
-- `AutoRecordActivity`：底部确认卡，金额可改、分类可换、账户可换、备注可改，一键确认入账
-- `AutoLogSettingsActivity`：三权限检查（通知使用权/无障碍/悬浮窗）+ 跳系统设置 + 测试触发
-
-**数据**
-- 6 张表：books / accounts / categories / transactions / budgets / tags
-- 金额统一用 `Long` 存「分」，避免浮点误差
-- 写账单时在同一事务里维护账户余额
-- 首次启动写入默认分类（22 个支出 + 7 个收入）与 4 个账户
-
-## Material 3 Expressive
-
-严格走官方实现：`MaterialExpressiveTheme` + `ExperimentalMaterial3ExpressiveApi`（material3 1.5.0-rc01）。
-
-为了用上它，整条链必须一起升：
-- Compose 1.12（BOM 2026.09.00）
-- AGP 9.5.1（9.0 起内置 Kotlin）
-- Gradle 9.9
-- compileSdk / targetSdk 37（平台包实际叫 `platforms;android-37.1` 和 `37.2`）
-- build-tools 37.0.0
+- **金额一律用 `Long` 存「分」**，不碰浮点，避免 0.1 + 0.2 这类误差。
+- **图标用 Material Symbols 可变字体的 ligature**，不打包上千个 vector。
+- **写账单和改账户余额在同一个事务里**，不会出现「账单记了但余额没动」。
+- **退款不计入收入，而是冲抵支出**（和钱迹一致），否则收入会虚高。
 
 ## 构建
 
-```powershell
-$env:JAVA_HOME = "D:\software\Scoop\apps\temurin21-jdk\current"
-$env:ANDROID_HOME = "D:\software\Android\Sdk"
-$env:GRADLE_USER_HOME = "D:\software\gradle-home"
-.\gradlew.bat :app:assembleDebug --console=plain
-# 产物 app\build\outputs\apk\debug\app-debug.apk
+需要 JDK 21、Android SDK（platform 37 / build-tools 37）和项目自带的 Gradle wrapper。
+
+```bash
+# 调试包
+./gradlew :app:assembleDebug
+
+# 发布包（未签名）
+./gradlew :app:assembleRelease
+
+# 签名
+apksigner sign --ks your.jks --out Within-1.0.0.apk \
+  app/build/outputs/apk/release/app-release-unsigned.apk
 ```
 
-## 待办（按优先级）
+如果 Maven Central 在你那里很慢，`settings.gradle.kts` 里已经配好了阿里云镜像，可以按需删改。
 
-1. **真机验证主流程**（装、记一笔、看首页、点详情、删除）
-2. 自动记账真机联调：开三权限 → 用测试按钮验证弹窗 → 真实支付验证
-3. 分类管理（增删改、二级分类）
-4. 预算（月/年总预算 + 分类预算 + 日均）
-5. 周期记账（房租、订阅）
-6. 导入导出（支付宝/微信账单 CSV）
-7. 多账本、标签、报销、退款
-8. 桌面小组件、日历视图
-9. 可选：工具链升级到官方 Expressive API
+## 参与翻译
+
+界面文案全部外置在 `app/src/main/res/values/strings.xml`，语言文件放在 `values-<语言代码>/strings.xml`。目前有简体中文（默认）和英文。
+
+添加一种语言只需要三步，详见 [docs/TRANSLATING.md](docs/TRANSLATING.md)：
+
+1. 复制 `values/strings.xml` 到 `values-xx/strings.xml`
+2. 逐条翻译（`%1$s`、`%1$d` 这类占位符保持原样）
+3. 提 PR
+
+## 许可
+
+[Apache License 2.0](LICENSE)
+
+第三方组件许可见 [NOTICE](NOTICE)。

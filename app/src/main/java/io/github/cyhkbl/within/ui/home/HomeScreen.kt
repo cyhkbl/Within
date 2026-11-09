@@ -45,6 +45,8 @@ import io.github.cyhkbl.within.ui.theme.IncomeGreen
 import io.github.cyhkbl.within.util.DateUtils
 import io.github.cyhkbl.within.util.MoneyUtils
 import java.time.YearMonth
+import androidx.compose.ui.res.stringResource
+import io.github.cyhkbl.within.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -165,7 +167,7 @@ private fun SummaryCard(state: HomeUiState) {
     ) {
         Column(modifier = Modifier.padding(22.dp)) {
             Text(
-                text = "本月支出",
+                text = stringResource(R.string.home_00),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f)
             )
@@ -179,7 +181,7 @@ private fun SummaryCard(state: HomeUiState) {
             Row(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        "收入",
+                        stringResource(R.string.home_01),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                     )
@@ -193,7 +195,7 @@ private fun SummaryCard(state: HomeUiState) {
                 }
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        "结余",
+                        stringResource(R.string.home_02),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                     )
@@ -207,7 +209,7 @@ private fun SummaryCard(state: HomeUiState) {
                 }
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
-                        "总资产",
+                        stringResource(R.string.home_03),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                     )
@@ -234,9 +236,9 @@ private fun WeekCard(state: HomeUiState) {
         Column(modifier = Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("最近 7 日", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.home_04), style = MaterialTheme.typography.titleMedium)
                     Text(
-                        text = "共 " + MoneyUtils.format(state.weekTotal),
+                        text = stringResource(R.string.home_05) + MoneyUtils.format(state.weekTotal),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -246,7 +248,7 @@ private fun WeekCard(state: HomeUiState) {
             Spacer(Modifier.height(10.dp))
             MiniBar(
                 values = state.weekValues,
-                labels = state.weekLabels,
+                labels = weekdayLabels(state.weekDays),
                 barColor = MaterialTheme.colorScheme.primary,
                 height = 120.dp
             )
@@ -304,7 +306,7 @@ private fun TransactionRow(
         Spacer(Modifier.width(14.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = category?.name ?: "未分类",
+                text = category?.name ?: stringResource(R.string.home_06),
                 style = MaterialTheme.typography.titleMedium
             )
             val sub = buildList {
@@ -345,13 +347,20 @@ private fun EmptyState() {
         ) {
             SymbolText("receipt_long", size = 48.dp, color = MaterialTheme.colorScheme.primary)
             Spacer(Modifier.height(12.dp))
-            Text("这个月还没有账单", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.home_07), style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(4.dp))
             Text(
-                "点右下角记第一笔",
+                stringResource(R.string.home_08),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
+}
+
+@Composable
+private fun weekdayLabels(days: List<Int>): List<String> {
+    val names = androidx.compose.ui.platform.LocalContext.current.resources
+        .getStringArray(R.array.weekday_short)
+    return days.map { day -> names.getOrElse(day - 1) { "" } }
 }
