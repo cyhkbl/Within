@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">量入为出</string>
+    <string name="notification_service_label">支付通知监听</string>
+    <string name="a11y_service_label">支付页面识别</string>
+    <string name="a11y_service_description">在微信、支付宝等应用出现支付完成页面时，读取页面上的金额和收款方，用来生成待确认的记账草稿。不会上传任何数据。</string>
+</resources>
