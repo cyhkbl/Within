@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Within</string>
+    <string name="notification_service_label">Payment notifications</string>
+    <string name="a11y_service_label">Payment screen reader</string>
+    <string name="a11y_service_description">Reads the amount and payee from payment-completed screens in WeChat, Alipay and similar apps to prepare a draft entry. Nothing is uploaded.</string>
+</resources>
