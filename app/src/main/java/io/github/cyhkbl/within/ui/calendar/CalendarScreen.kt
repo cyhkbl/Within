@@ -46,6 +46,8 @@ import io.github.cyhkbl.within.util.DateUtils
 import io.github.cyhkbl.within.util.MoneyUtils
 import java.time.LocalDate
 import java.time.YearMonth
+import androidx.compose.ui.res.stringResource
+import io.github.cyhkbl.within.R
 
 @Composable
 fun CalendarScreen(
@@ -94,7 +96,7 @@ fun CalendarScreen(
                 ) {
                     SymbolText("arrow_back", size = 20.dp)
                     Spacer(Modifier.width(6.dp))
-                    Text("返回")
+                    Text(stringResource(R.string.calendar_00))
                 }
             }
         }
@@ -131,7 +133,7 @@ fun CalendarScreen(
         Spacer(Modifier.height(12.dp))
 
         Row(modifier = Modifier.fillMaxWidth()) {
-            listOf("一", "二", "三", "四", "五", "六", "日").forEach { label ->
+            listOf(stringResource(R.string.calendar_01), stringResource(R.string.calendar_02), stringResource(R.string.calendar_03), stringResource(R.string.calendar_04), stringResource(R.string.calendar_05), stringResource(R.string.calendar_06), stringResource(R.string.calendar_07)).forEach { label ->
                 Text(
                     label,
                     style = MaterialTheme.typography.labelSmall,
@@ -181,8 +183,8 @@ fun CalendarScreen(
                 val income = dayTx.filter { it.kind == "INCOME" }.sumOf { it.amount }
                 Text(
                     buildList {
-                        if (income > 0) add("收 " + MoneyUtils.format(income))
-                        if (expense > 0) add("支 " + MoneyUtils.format(expense))
+                        if (income > 0) add(stringResource(R.string.calendar_08) + MoneyUtils.format(income))
+                        if (expense > 0) add(stringResource(R.string.calendar_09) + MoneyUtils.format(expense))
                     }.joinToString("  "),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -192,7 +194,7 @@ fun CalendarScreen(
 
             if (dayTx.isEmpty()) {
                 Text(
-                    "这天没有账单",
+                    stringResource(R.string.calendar_10),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(vertical = 20.dp)
@@ -299,7 +301,7 @@ private fun DayTxRow(tx: TransactionEntity, category: CategoryEntity?, onClick: 
         CategoryGlyph(icon = category?.icon ?: "category", size = 38.dp)
         Spacer(Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(category?.name ?: "未分类", style = MaterialTheme.typography.bodyLarge)
+            Text(category?.name ?: stringResource(R.string.calendar_11), style = MaterialTheme.typography.bodyLarge)
             if (tx.note.isNotBlank()) {
                 Text(
                     tx.note,

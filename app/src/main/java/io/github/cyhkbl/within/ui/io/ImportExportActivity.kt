@@ -51,6 +51,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
+import androidx.compose.ui.res.stringResource
+import io.github.cyhkbl.within.R
 
 class ImportExportActivity : ComponentActivity() {
 
@@ -87,6 +89,14 @@ private fun ImportExportScreen(
     var lastResult by remember { mutableStateOf<ImportResult?>(null) }
     var busy by remember { mutableStateOf(false) }
 
+    // 这些文案要放进协程/回调里用，必须在 Composable 作用域先取出来
+    val exportPrefix = stringResource(R.string.io_export_prefix)
+    val errUnknown = stringResource(R.string.common_error_unknown)
+    val statusExportFailed = stringResource(R.string.io_status_export_failed)
+    val statusParsedEmpty = stringResource(R.string.io_status_parsed_empty)
+    val statusParseFailed = stringResource(R.string.io_status_read_failed)
+    val statusCancelled = stringResource(R.string.io_22)
+
     val exportNow: () -> Unit = {
         busy = true
         scope.launch {
@@ -100,14 +110,14 @@ private fun ImportExportScreen(
                         cats.associate { it.id to it.name },
                         accounts.associate { it.id to it.name }
                     )
-                    val requestedName = "账本导出-" + LocalDate.now() + ".csv"
+                    val requestedName = exportPrefix + LocalDate.now() + ".csv"
                     // 用实际落盘的文件名：下载目录已有同名文件时系统会追加 (1)(2)
                     val actualName = writeCsvToDownloads(context, requestedName, csv)
                     actualName to txs.size
                 }
-                status = "已导出 ${result.second} 条账单到「下载/${result.first}」"
+                status = context.getString(R.string.io_status_exported, result.second, result.first)
             } catch (t: Throwable) {
-                status = "导出失败：" + (t.message ?: "未知错误")
+                status = statusExportFailed + (t.message ?: errUnknown)
             } finally {
                 busy = false
             }
@@ -128,10 +138,10 @@ private fun ImportExportScreen(
                     LedgerCsv.parseCsv(text)
                 }
                 pendingImport = rows
-                status = if (rows.isEmpty()) "没有解析到可导入的行，检查一下表头是否有「金额」列"
-                else "解析到 ${rows.size} 条，确认后导入"
+                status = if (rows.isEmpty()) statusParsedEmpty
+                else context.getString(R.string.io_status_parsed, rows.size)
             } catch (t: Throwable) {
-                status = "读取失败：" + (t.message ?: "未知错误")
+                status = statusParseFailed + (t.message ?: errUnknown)
             } finally {
                 busy = false
             }
@@ -159,11 +169,11 @@ private fun ImportExportScreen(
                 ) {
                     SymbolText("arrow_back", size = 20.dp)
                     Spacer(Modifier.width(6.dp))
-                    Text("返回")
+                    Text(stringResource(R.string.io_06))
                 }
             }
             Spacer(Modifier.weight(1f))
-            Text("导入导出", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.io_07), style = MaterialTheme.typography.titleMedium)
         }
 
         Surface(
@@ -173,13 +183,13 @@ private fun ImportExportScreen(
         ) {
             Column(modifier = Modifier.padding(20.dp)) {
                 Text(
-                    "CSV 格式与钱迹兼容",
+                    stringResource(R.string.io_08),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSecondaryContainer
                 )
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    "列顺序为「时间,类型,金额,分类,账户,备注,标签,币种,手续费」。导入时不依赖列顺序，按表头名字匹配，所以别的记账 App 导出的表也能读。",
+                    stringResource(R.string.io_09),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.85f)
                 )
@@ -190,22 +200,22 @@ private fun ImportExportScreen(
 
         ActionCard(
             icon = "file_download",
-            title = "导出账单",
-            subtitle = "生成 CSV 并保存到「下载」目录"
+            title = stringResource(R.string.io_10),
+            subtitle = stringResource(R.string.io_11)
         ) {
             Button(
                 onClick = { exportNow() },
                 enabled = !busy,
                 shape = RoundedCornerShape(50)
-            ) { Text("导出到下载目录") }
+            ) { Text(stringResource(R.string.io_12)) }
         }
 
         Spacer(Modifier.height(12.dp))
 
         ActionCard(
             icon = "file_upload",
-            title = "导入账单",
-            subtitle = "支持钱迹导出的 CSV，按表头自动识别列"
+            title = stringResource(R.string.io_13),
+            subtitle = stringResource(R.string.io_14)
         ) {
             Button(
                 // 不用 MIME 过滤：DocumentsUI 对 text/* 这类通配不生效，
@@ -213,7 +223,7 @@ private fun ImportExportScreen(
                 onClick = { importLauncher.launch(arrayOf("*/*")) },
                 enabled = !busy,
                 shape = RoundedCornerShape(50)
-            ) { Text("选择文件") }
+            ) { Text(stringResource(R.string.io_15)) }
         }
 
         val pending = pendingImport
@@ -230,15 +240,15 @@ private fun ImportExportScreen(
                     val preview = pending.take(3)
                     preview.forEach { row ->
                         val kindLabel = when (row.kind) {
-                            "INCOME" -> "收入"
-                            "TRANSFER" -> "转账"
-                            else -> "支出"
+                            "INCOME" -> stringResource(R.string.io_16)
+                            "TRANSFER" -> stringResource(R.string.io_17)
+                            else -> stringResource(R.string.io_18)
                         }
                         Text(
                             "${row.clock.toLocalDate()} · " + kindLabel + " · " +
                                 io.github.cyhkbl.within.util.MoneyUtils.format(row.amountCents) +
-                                " · " + row.categoryName.ifBlank { "未分类" } +
-                                " · " + row.accountName.ifBlank { "现金" },
+                                " · " + row.categoryName.ifBlank { stringResource(R.string.io_19) } +
+                                " · " + row.accountName.ifBlank { stringResource(R.string.io_20) },
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -267,12 +277,12 @@ private fun ImportExportScreen(
                             },
                             enabled = !busy,
                             shape = RoundedCornerShape(50)
-                        ) { Text("确认导入") }
+                        ) { Text(stringResource(R.string.io_21)) }
                         Spacer(Modifier.width(10.dp))
                         OutlinedButton(
-                            onClick = { pendingImport = null; status = "已取消" },
+                            onClick = { pendingImport = null; status = statusCancelled },
                             shape = RoundedCornerShape(50)
-                        ) { Text("取消") }
+                        ) { Text(stringResource(R.string.io_23)) }
                     }
                 }
             }
@@ -344,7 +354,7 @@ private fun ActionCard(
  */
 private fun writeCsvToDownloads(context: Context, name: String, csv: String): String {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-        throw IllegalStateException("系统版本过低，暂不支持自动导出")
+        throw IllegalStateException(context.getString(R.string.io_24))
     }
     val values = ContentValues().apply {
         put(MediaStore.Downloads.DISPLAY_NAME, name)
@@ -353,10 +363,10 @@ private fun writeCsvToDownloads(context: Context, name: String, csv: String): St
     }
     val collection = MediaStore.Downloads.EXTERNAL_CONTENT_URI
     val uri = context.contentResolver.insert(collection, values)
-        ?: throw IllegalStateException("无法在下载目录创建文件")
+        ?: throw IllegalStateException(context.getString(R.string.io_25))
     context.contentResolver.openOutputStream(uri)?.use { out ->
         out.write(csv.toByteArray(Charsets.UTF_8))
-    } ?: throw IllegalStateException("无法写入文件")
+    } ?: throw IllegalStateException(context.getString(R.string.io_26))
 
     // 同名文件已存在时系统会改名，回读真实文件名，避免提示与实际不符
     var actualName = name

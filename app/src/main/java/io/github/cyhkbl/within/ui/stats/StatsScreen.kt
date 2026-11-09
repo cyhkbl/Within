@@ -35,6 +35,8 @@ import io.github.cyhkbl.within.ui.components.SymbolText
 import io.github.cyhkbl.within.util.DateUtils
 import io.github.cyhkbl.within.util.MoneyUtils
 import java.time.YearMonth
+import androidx.compose.ui.res.stringResource
+import io.github.cyhkbl.within.R
 
 @Composable
 fun StatsScreen(repo: LedgerRepository) {
@@ -60,7 +62,7 @@ fun StatsScreen(repo: LedgerRepository) {
     ) {
         item {
             Column(modifier = Modifier.padding(top = 16.dp, bottom = 4.dp)) {
-                Text("统计", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.stats_00), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
                 Text(
                     DateUtils.formatMonthLabel(ym),
                     style = MaterialTheme.typography.bodyMedium,
@@ -77,7 +79,7 @@ fun StatsScreen(repo: LedgerRepository) {
             ) {
                 Column(modifier = Modifier.padding(22.dp)) {
                     Text(
-                        "本月总支出",
+                        stringResource(R.string.stats_01),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.75f)
                     )
@@ -102,7 +104,7 @@ fun StatsScreen(repo: LedgerRepository) {
 
         item {
             Text(
-                "分类排行",
+                stringResource(R.string.stats_02),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(top = 8.dp)
             )
@@ -111,7 +113,7 @@ fun StatsScreen(repo: LedgerRepository) {
         if (byCategory.isEmpty()) {
             item {
                 Text(
-                    "这个月还没有支出",
+                    stringResource(R.string.stats_03),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -166,7 +168,7 @@ private fun CategoryBar(category: CategoryEntity?, amount: Long, total: Long, ra
         Column(modifier = Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    category?.name ?: "未分类",
+                    category?.name ?: stringResource(R.string.stats_04),
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.weight(1f)
                 )

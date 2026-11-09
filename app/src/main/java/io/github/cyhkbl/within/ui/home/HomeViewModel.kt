@@ -34,7 +34,7 @@ data class HomeUiState(
     val accounts: Map<Long, AccountEntity> = emptyMap(),
     val totalBalance: Long = 0L,
     val weekValues: List<Float> = List(7) { 0f },
-    val weekLabels: List<String> = emptyList(),
+    val weekDays: List<Int> = emptyList(),
     val weekTotal: Long = 0L
 )
 
@@ -87,10 +87,8 @@ class HomeViewModel(private val repo: LedgerRepository) : ViewModel() {
                 .sumOf { it.amount }
             (gross - refundsInDay).coerceAtLeast(0L).toFloat()
         }
-        val weekLabels = (6 downTo 0).map { offset ->
-            when (today.minusDays(offset.toLong()).dayOfWeek.value) {
-                1 -> "一"; 2 -> "二"; 3 -> "三"; 4 -> "四"; 5 -> "五"; 6 -> "六"; else -> "日"
-            }
+        val weekDays = (6 downTo 0).map { offset ->
+            today.minusDays(offset.toLong()).dayOfWeek.value
         }
 
         HomeUiState(
@@ -102,7 +100,7 @@ class HomeViewModel(private val repo: LedgerRepository) : ViewModel() {
             accounts = accMap,
             totalBalance = total,
             weekValues = weekValues,
-            weekLabels = weekLabels,
+            weekDays = weekDays,
             weekTotal = weekValues.sumOf { it.toLong() }
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())

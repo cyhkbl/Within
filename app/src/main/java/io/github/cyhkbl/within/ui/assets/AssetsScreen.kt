@@ -28,6 +28,8 @@ import io.github.cyhkbl.within.data.LedgerRepository
 import io.github.cyhkbl.within.ui.components.CategoryGlyph
 import io.github.cyhkbl.within.ui.components.SymbolText
 import io.github.cyhkbl.within.util.MoneyUtils
+import androidx.compose.ui.res.stringResource
+import io.github.cyhkbl.within.R
 
 @Composable
 fun AssetsScreen(repo: LedgerRepository) {
@@ -47,7 +49,7 @@ fun AssetsScreen(repo: LedgerRepository) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("资产", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.assets_00), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
                     Text(
                         "共 ${accounts.size} 个账户",
                         style = MaterialTheme.typography.bodyMedium,
@@ -69,7 +71,7 @@ fun AssetsScreen(repo: LedgerRepository) {
                     ) {
                         SymbolText("tune", size = 18.dp)
                         Spacer(Modifier.width(6.dp))
-                        Text("管理")
+                        Text(stringResource(R.string.assets_01))
                     }
                 }
             }
@@ -83,7 +85,7 @@ fun AssetsScreen(repo: LedgerRepository) {
             ) {
                 Column(modifier = Modifier.padding(22.dp)) {
                     Text(
-                        "净资产",
+                        stringResource(R.string.assets_02),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f)
                     )
@@ -152,11 +154,12 @@ private fun accountIcon(type: String): String = when (type) {
     else -> "wallet"
 }
 
+@Composable
 private fun accountTypeLabel(type: String): String = when (type) {
-    "BANK" -> "银行卡"
-    "CREDIT" -> "信用卡"
-    "WALLET" -> "钱包"
-    "INVEST" -> "投资"
-    "CASH" -> "现金"
-    else -> "其它"
+    "BANK" -> stringResource(R.string.assets_03)
+    "CREDIT" -> stringResource(R.string.assets_04)
+    "WALLET" -> stringResource(R.string.assets_05)
+    "INVEST" -> stringResource(R.string.assets_06)
+    "CASH" -> stringResource(R.string.assets_07)
+    else -> stringResource(R.string.assets_08)
 }
