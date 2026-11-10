@@ -71,7 +71,7 @@ fun MoreScreen(repo: LedgerRepository) {
     ) {
         item {
             Column(modifier = Modifier.padding(top = 16.dp, bottom = 4.dp)) {
-                Text(stringResource(R.string.more_18), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.more_18), style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.SemiBold)
                 Text(
                     stringResource(R.string.more_19),
                     style = MaterialTheme.typography.bodyMedium,

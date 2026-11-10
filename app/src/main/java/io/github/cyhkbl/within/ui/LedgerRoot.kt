@@ -204,7 +204,8 @@ private fun MainShell(
         bottomBar = {
             NavigationBar(
                 containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                tonalElevation = 0.dp
+                tonalElevation = 0.dp,
+                windowInsets = WindowInsets(0)
             ) {
                 destinations.forEach { dest ->
                     NavigationBarItem(

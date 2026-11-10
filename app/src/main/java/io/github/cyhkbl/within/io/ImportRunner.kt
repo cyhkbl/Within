@@ -224,7 +224,13 @@ class ImportRunner(private val repo: LedgerRepository) {
             cache[name] = existing
             return existing
         }
-        val id = repo.saveAccount(AccountEntity(name = name, type = "WALLET", sortOrder = 90))
+        val id = repo.saveAccount(
+            AccountEntity(
+                name = name,
+                type = io.github.cyhkbl.within.data.AccountChannels.inferFromName(name, null),
+                sortOrder = 90
+            )
+        )
         val created = repo.accountById(id) ?: AccountEntity(id = id, name = name)
         cache[name] = created
         return created

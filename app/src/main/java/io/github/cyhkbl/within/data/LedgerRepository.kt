@@ -1,6 +1,7 @@
 package io.github.cyhkbl.within.data
 
 import androidx.room.withTransaction
+import io.github.cyhkbl.within.data.AccountChannels
 import io.github.cyhkbl.within.data.db.AccountEntity
 import io.github.cyhkbl.within.data.db.BudgetEntity
 import io.github.cyhkbl.within.data.db.CategoryEntity
@@ -50,6 +51,23 @@ class LedgerRepository(private val db: LedgerDatabase) {
     suspend fun deleteTransaction(tx: TransactionEntity) = db.withTransaction {
         applyBalanceDelta(tx, -1)
         db.transactionDao().delete(tx)
+    }
+
+    /**
+     * 老数据的账户类型是 CASH/WALLET/BANK 这类粗分类，这里按账户名一次性迁到
+     * 具体渠道（微信、支付宝、工商银行……），只跑一次。
+     */
+    suspend fun migrateAccountChannels(): Int {
+        val accounts = db.accountDao().listAll()
+        var changed = 0
+        accounts.forEach { acc ->
+            if (AccountChannels.byKey(acc.type) == null) {
+                val channel = AccountChannels.inferFromName(acc.name, acc.type)
+                db.accountDao().update(acc.copy(type = channel))
+                changed++
+            }
+        }
+        return changed
     }
 
     /**

@@ -26,6 +26,8 @@ class LedgerApp : Application() {
             repo.seedIfNeeded()
             // 早先写入的退款记录被当成了收入，这里一次性纠正
             repo.normalizeRefundFlags()
+            // 账户类型从「钱包/银行卡」迁到「微信/支付宝/工商银行」这类渠道
+            repo.migrateAccountChannels()
         }
     }
 }
