@@ -99,7 +99,7 @@ fun HomeScreen(
                     ) {
                         Text(
                             text = DateUtils.formatMonthLabel(state.month),
-                            style = MaterialTheme.typography.titleLarge,
+                            style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.SemiBold
                         )
                         SymbolText(

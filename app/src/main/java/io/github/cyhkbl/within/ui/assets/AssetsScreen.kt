@@ -4,17 +4,17 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -24,7 +24,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LargeFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -38,26 +37,28 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.res.stringResource
-import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.cyhkbl.within.R
+import io.github.cyhkbl.within.data.AccountChannels
 import io.github.cyhkbl.within.data.LedgerRepository
 import io.github.cyhkbl.within.data.db.AccountEntity
-import io.github.cyhkbl.within.ui.components.CategoryGlyph
+import io.github.cyhkbl.within.ui.components.ChannelGlyph
 import io.github.cyhkbl.within.ui.components.SymbolText
 import io.github.cyhkbl.within.util.MoneyUtils
+import kotlinx.coroutines.launch
 
 /**
  * 资产页。
  *
- * 不设二级管理页：点任意账户直接改余额，右下角 + 新建账户。
- * 改余额不会覆盖字段，而是生成一笔「余额调整」平账记录，保证流水和余额永远自洽。
+ * 账户类型就是渠道（微信、支付宝、工商银行……），点账户直接编辑，
+ * 右下角新建时先选渠道，名称按渠道自动生成（微信 → 微信2）。
  */
 @Composable
 fun AssetsScreen(repo: LedgerRepository) {
@@ -80,6 +81,7 @@ fun AssetsScreen(repo: LedgerRepository) {
     if (creating) {
         AccountEditDialog(
             initial = null,
+            existingNames = accounts.map { it.name },
             onDismiss = { creating = false },
             onSave = { entity ->
                 creating = false
@@ -95,6 +97,7 @@ fun AssetsScreen(repo: LedgerRepository) {
     editing?.let { account ->
         AccountEditDialog(
             initial = account,
+            existingNames = accounts.map { it.name },
             onDismiss = { editing = null },
             onSave = { entity ->
                 editing = null
@@ -169,7 +172,7 @@ fun AssetsScreen(repo: LedgerRepository) {
                 Column(modifier = Modifier.padding(top = 16.dp, bottom = 4.dp)) {
                     Text(
                         stringResource(R.string.assets_00),
-                        style = MaterialTheme.typography.headlineMedium,
+                        style = MaterialTheme.typography.displaySmall,
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
@@ -183,7 +186,7 @@ fun AssetsScreen(repo: LedgerRepository) {
             if (toast.isNotEmpty()) {
                 item {
                     Surface(
-                        shape = MaterialTheme.shapes.medium,
+                        shape = MaterialTheme.shapes.large,
                         color = MaterialTheme.colorScheme.secondaryContainer,
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -203,16 +206,16 @@ fun AssetsScreen(repo: LedgerRepository) {
                     color = MaterialTheme.colorScheme.primaryContainer,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Column(modifier = Modifier.padding(22.dp)) {
+                    Column(modifier = Modifier.padding(24.dp)) {
                         Text(
                             stringResource(R.string.assets_02),
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f)
                         )
-                        Spacer(Modifier.height(6.dp))
+                        Spacer(Modifier.height(8.dp))
                         Text(
                             MoneyUtils.format(total),
-                            fontSize = 38.sp,
+                            fontSize = 40.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
@@ -226,7 +229,7 @@ fun AssetsScreen(repo: LedgerRepository) {
                     color = MaterialTheme.colorScheme.surfaceContainerLow,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Column(modifier = Modifier.padding(vertical = 6.dp)) {
+                    Column(modifier = Modifier.padding(vertical = 8.dp)) {
                         accounts.forEachIndexed { index, account ->
                             Row(
                                 modifier = Modifier
@@ -235,15 +238,19 @@ fun AssetsScreen(repo: LedgerRepository) {
                                     .padding(horizontal = 18.dp, vertical = 14.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                CategoryGlyph(icon = accountIcon(account.type), size = 42.dp)
+                                ChannelGlyph(channel = account.type, size = 44.dp)
                                 Spacer(Modifier.width(14.dp))
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(account.name, style = MaterialTheme.typography.titleMedium)
-                                    Text(
-                                        accountTypeLabel(account.type),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
+                                    // 名字和渠道一致时不重复显示（「支付宝 / 支付宝」）
+                                    val channelLabel = AccountChannels.labelOf(account.type)
+                                    if (account.name != channelLabel) {
+                                        Text(
+                                            channelLabel,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
                                 }
                                 Text(
                                     MoneyUtils.format(account.balance),
@@ -253,7 +260,7 @@ fun AssetsScreen(repo: LedgerRepository) {
                             }
                             if (index != accounts.lastIndex) {
                                 HorizontalDivider(
-                                    modifier = Modifier.padding(start = 74.dp),
+                                    modifier = Modifier.padding(start = 76.dp),
                                     color = MaterialTheme.colorScheme.outlineVariant
                                 )
                             }
@@ -267,37 +274,80 @@ fun AssetsScreen(repo: LedgerRepository) {
     }
 }
 
-private data class AccountTypeOption(val key: String, val label: String, val icon: String)
-
-private val accountTypeOptions = listOf(
-    AccountTypeOption("CASH", "现金", "payments"),
-    AccountTypeOption("WALLET", "钱包", "account_balance_wallet"),
-    AccountTypeOption("BANK", "银行卡", "account_balance"),
-    AccountTypeOption("CREDIT", "信用卡", "credit_card"),
-    AccountTypeOption("INVEST", "投资", "trending_up")
-)
-
 @Composable
 private fun AccountEditDialog(
     initial: AccountEntity?,
+    existingNames: List<String>,
     onDismiss: () -> Unit,
     onSave: (AccountEntity) -> Unit,
     onDelete: (() -> Unit)?
 ) {
     val isNew = initial == null
     var name by remember { mutableStateOf(initial?.name ?: "") }
-    var type by remember { mutableStateOf(initial?.type ?: "CASH") }
+    var channel by remember { mutableStateOf(initial?.type ?: "wechat") }
     var balanceText by remember { mutableStateOf(MoneyUtils.formatPlain(initial?.balance ?: 0L)) }
-    val fallbackName = "未命名账户"
+    var nameTouched by remember { mutableStateOf(!isNew) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (isNew) "新建账户" else "编辑账户") },
         text = {
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                Text("渠道", style = MaterialTheme.typography.labelLarge)
+                Spacer(Modifier.height(8.dp))
+                AccountChannels.all.chunked(3).forEach { rowChannels ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        rowChannels.forEach { option ->
+                            val selected = option.key == channel
+                            Surface(
+                                shape = RoundedCornerShape(16.dp),
+                                color = if (selected) MaterialTheme.colorScheme.secondaryContainer
+                                else MaterialTheme.colorScheme.surfaceContainerHigh,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clickable {
+                                        channel = option.key
+                                        // 用户没手动改过名字时，名字跟着渠道走
+                                        if (!nameTouched) {
+                                            name = AccountChannels.nextName(
+                                                option.key,
+                                                existingNames.filter { it != initial?.name }
+                                            )
+                                        }
+                                    }
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(vertical = 8.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    ChannelGlyph(channel = option.key, size = 28.dp)
+                                    Spacer(Modifier.height(4.dp))
+                                    Text(
+                                        option.label,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = if (selected) MaterialTheme.colorScheme.onSecondaryContainer
+                                        else MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                        repeat(3 - rowChannels.size) {
+                            Box(modifier = Modifier.weight(1f))
+                        }
+                    }
+                    Spacer(Modifier.height(8.dp))
+                }
+
+                Spacer(Modifier.height(4.dp))
                 OutlinedTextField(
                     value = name,
-                    onValueChange = { name = it },
+                    onValueChange = {
+                        name = it
+                        nameTouched = true
+                    },
                     label = { Text("名称") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
@@ -317,55 +367,18 @@ private fun AccountEditDialog(
                         null
                     }
                 )
-                Spacer(Modifier.height(12.dp))
-                Text("类型", style = MaterialTheme.typography.labelLarge)
-                Spacer(Modifier.height(6.dp))
-                Column {
-                    accountTypeOptions.chunked(3).forEach { rowOptions ->
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            rowOptions.forEach { option ->
-                                val selected = option.key == type
-                                Surface(
-                                    shape = RoundedCornerShape(50),
-                                    color = if (selected) MaterialTheme.colorScheme.secondaryContainer
-                                    else MaterialTheme.colorScheme.surfaceContainerHigh,
-                                    modifier = Modifier
-                                        .clickable { type = option.key }
-                                        .padding(vertical = 2.dp)
-                                ) {
-                                    Row(
-                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        SymbolText(
-                                            option.icon,
-                                            size = 16.dp,
-                                            color = if (selected) MaterialTheme.colorScheme.onSecondaryContainer
-                                            else MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                        Spacer(Modifier.width(4.dp))
-                                        Text(
-                                            option.label,
-                                            style = MaterialTheme.typography.labelLarge,
-                                            color = if (selected) MaterialTheme.colorScheme.onSecondaryContainer
-                                            else MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                        Spacer(Modifier.height(6.dp))
-                    }
-                }
             }
         },
         confirmButton = {
             Button(onClick = {
                 val balance = balanceText.toDoubleOrNull()?.let { Math.round(it * 100) } ?: 0L
+                val finalName = name.trim().ifBlank {
+                    AccountChannels.nextName(channel, existingNames.filter { it != initial?.name })
+                }
                 onSave(
-                    (initial ?: AccountEntity(name = name, type = type)).copy(
-                        name = name.trim().ifBlank { fallbackName },
-                        type = type,
+                    (initial ?: AccountEntity(name = finalName, type = channel)).copy(
+                        name = finalName,
+                        type = channel,
                         balance = balance
                     )
                 )
@@ -382,23 +395,4 @@ private fun AccountEditDialog(
             }
         }
     )
-}
-
-private fun accountIcon(type: String): String = when (type) {
-    "BANK" -> "account_balance"
-    "CREDIT" -> "credit_card"
-    "WALLET" -> "account_balance_wallet"
-    "INVEST" -> "trending_up"
-    "CASH" -> "payments"
-    else -> "wallet"
-}
-
-@Composable
-private fun accountTypeLabel(type: String): String = when (type) {
-    "BANK" -> stringResource(R.string.assets_03)
-    "CREDIT" -> stringResource(R.string.assets_04)
-    "WALLET" -> stringResource(R.string.assets_05)
-    "INVEST" -> stringResource(R.string.assets_06)
-    "CASH" -> stringResource(R.string.assets_07)
-    else -> stringResource(R.string.assets_08)
 }

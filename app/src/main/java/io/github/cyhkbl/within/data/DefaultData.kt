@@ -49,10 +49,10 @@ object DefaultData {
     )
 
     private val accounts = listOf(
-        Triple("现金", "CASH", "payments"),
-        Triple("微信", "WALLET", "chat"),
-        Triple("支付宝", "WALLET", "account_balance_wallet"),
-        Triple("银行卡", "BANK", "account_balance")
+        Triple("现金", "cash", "payments"),
+        Triple("微信", "wechat", "chat"),
+        Triple("支付宝", "alipay", "account_balance_wallet"),
+        Triple("银行卡", "other", "account_balance")
     )
 
     suspend fun seedIfEmpty(db: LedgerDatabase) {
