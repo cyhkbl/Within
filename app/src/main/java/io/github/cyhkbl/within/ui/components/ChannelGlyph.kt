@@ -15,11 +15,18 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.cyhkbl.within.R
 
-private data class ChannelSkin(val iconRes: Int, val brand: Color)
+private data class ChannelSkin(
+    val brand: Color,
+    val iconRes: Int? = null,
+    val symbol: String? = null
+)
 
 /**
- * 账户渠道图标：品牌色做低透明容器，图标本身用品牌色，
- * 和 Material 3 Expressive 的 tonal icon 一个路子——既有品牌识别度，又不打架。
+ * 账户渠道图标。
+ *
+ * 微信、支付宝和几家银行用的是 Arcticons 提供的官方 logo 轮廓（CC BY-SA 4.0，
+ * 见 NOTICE），单色描边，按品牌色上色，容器是同一品牌的低透明底。
+ * 交通银行没有现成 logo，退回 Material Symbols 的通用银行图标。
  */
 @Composable
 fun ChannelGlyph(channel: String?, size: Dp = 44.dp) {
@@ -31,25 +38,34 @@ fun ChannelGlyph(channel: String?, size: Dp = 44.dp) {
             .background(skin.brand.copy(alpha = 0.16f)),
         contentAlignment = Alignment.Center
     ) {
-        Icon(
-            painter = painterResource(skin.iconRes),
-            contentDescription = null,
-            tint = skin.brand,
-            modifier = Modifier.size(size * 0.58f)
-        )
+        val res = skin.iconRes
+        if (res != null) {
+            Icon(
+                painter = painterResource(res),
+                contentDescription = null,
+                tint = skin.brand,
+                modifier = Modifier.size(size * 0.62f)
+            )
+        } else {
+            SymbolText(
+                name = skin.symbol ?: "account_balance",
+                size = size * 0.52f,
+                color = skin.brand
+            )
+        }
     }
 }
 
 private fun channelSkin(channel: String?): ChannelSkin = when (channel) {
-    "wechat" -> ChannelSkin(R.drawable.ic_channel_wechat, Color(0xFF07C160))
-    "alipay" -> ChannelSkin(R.drawable.ic_channel_alipay, Color(0xFF1677FF))
-    "icbc" -> ChannelSkin(R.drawable.ic_channel_icbc, Color(0xFFC7000B))
-    "boc" -> ChannelSkin(R.drawable.ic_channel_boc, Color(0xFFA6093D))
-    "cmb" -> ChannelSkin(R.drawable.ic_channel_cmb, Color(0xFFD3001D))
-    "ccb" -> ChannelSkin(R.drawable.ic_channel_ccb, Color(0xFF0055A5))
-    "abc" -> ChannelSkin(R.drawable.ic_channel_abc, Color(0xFF009B4C))
-    "bocom" -> ChannelSkin(R.drawable.ic_channel_bocom, Color(0xFF005BAC))
-    "cash" -> ChannelSkin(R.drawable.ic_channel_cash, Color(0xFF00875F))
-    "credit" -> ChannelSkin(R.drawable.ic_channel_credit, Color(0xFF7A4FCF))
-    else -> ChannelSkin(R.drawable.ic_channel_other, Color(0xFF5C6470))
+    "wechat" -> ChannelSkin(Color(0xFF07C160), R.drawable.ic_channel_wechat)
+    "alipay" -> ChannelSkin(Color(0xFF1677FF), R.drawable.ic_channel_alipay)
+    "icbc" -> ChannelSkin(Color(0xFFC7000B), R.drawable.ic_channel_icbc)
+    "boc" -> ChannelSkin(Color(0xFFA6093D), R.drawable.ic_channel_boc)
+    "cmb" -> ChannelSkin(Color(0xFFD3001D), R.drawable.ic_channel_cmb)
+    "ccb" -> ChannelSkin(Color(0xFF0055A5), R.drawable.ic_channel_ccb)
+    "abc" -> ChannelSkin(Color(0xFF009B4C), R.drawable.ic_channel_abc)
+    "bocom" -> ChannelSkin(Color(0xFF005BAC), symbol = "account_balance")
+    "cash" -> ChannelSkin(Color(0xFF00875F), R.drawable.ic_channel_cash)
+    "credit" -> ChannelSkin(Color(0xFF7A4FCF), R.drawable.ic_channel_credit)
+    else -> ChannelSkin(Color(0xFF5C6470), R.drawable.ic_channel_other)
 }
