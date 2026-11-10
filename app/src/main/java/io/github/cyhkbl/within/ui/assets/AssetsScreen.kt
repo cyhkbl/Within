@@ -21,7 +21,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.LargeFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -144,12 +144,17 @@ fun AssetsScreen(repo: LedgerRepository) {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
         floatingActionButton = {
-            FloatingActionButton(
+            LargeFloatingActionButton(
                 onClick = { creating = true },
+                shape = MaterialTheme.shapes.large,
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer
             ) {
-                SymbolText("add", size = 26.dp)
+                SymbolText(
+                    "add",
+                    size = 30.dp,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
             }
         }
     ) { padding ->

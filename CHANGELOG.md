@@ -2,6 +2,11 @@
 
 本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## 1.2.1 (2026-11-10)
+
+### 界面
+
+- 资产页的新建按钮改成和账单页一致的大号圆角矩形（`LargeFloatingActionButton` + `shapes.large`），之前是普通圆形 FAB。
 ## 1.2.0 (2026-11-10)
 
 ### 资产页重做
