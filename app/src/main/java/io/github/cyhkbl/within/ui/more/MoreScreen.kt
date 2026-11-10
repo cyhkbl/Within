@@ -92,17 +92,17 @@ fun MoreScreen(repo: LedgerRepository) {
                                 .fillMaxWidth()
                                 .clickable {
                                     when (item.title) {
-                                        R.string.more_20 -> context.startActivity(
+                                        R.string.more_00 -> context.startActivity(
                                             android.content.Intent(context, AutoLogSettingsActivity::class.java)
                                         )
-                                        R.string.more_21 -> context.startActivity(
+                                        R.string.more_02 -> context.startActivity(
                                             android.content.Intent(context, CategoryManageActivity::class.java)
                                         )
-                                        R.string.more_22, R.string.more_23, R.string.more_24 -> context.startActivity(
+                                        R.string.more_08, R.string.more_10, R.string.more_12 -> context.startActivity(
                                             android.content.Intent(context, ImportExportActivity::class.java)
                                         )
-                                        R.string.more_25 -> showAppearance = true
-                                        R.string.more_26 -> showAbout = true
+                                        R.string.more_14 -> showAppearance = true
+                                        R.string.more_16 -> showAbout = true
                                         else -> showComingSoon = item.title
                                     }
                                 }
