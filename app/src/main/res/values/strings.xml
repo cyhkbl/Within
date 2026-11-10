@@ -244,4 +244,5 @@
     <string name="common_cancel">取消</string>
     <string name="common_confirm">确定</string>
     <string name="home_month_expense_fmt">%1$d月支出</string>
+    <string name="source_adjust">余额调整</string>
 </resources>

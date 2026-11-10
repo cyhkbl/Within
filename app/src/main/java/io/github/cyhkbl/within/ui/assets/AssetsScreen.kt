@@ -17,6 +17,12 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -36,6 +42,30 @@ fun AssetsScreen(repo: LedgerRepository) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val accounts by repo.accounts().collectAsState(initial = emptyList())
     val total by repo.totalBalance().collectAsState(initial = 0L)
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    var showCalibrate by remember { mutableStateOf(false) }
+    var toast by remember { mutableStateOf("") }
+
+    androidx.compose.runtime.LaunchedEffect(toast) {
+        if (toast.isNotEmpty()) {
+            kotlinx.coroutines.delay(2600)
+            toast = ""
+        }
+    }
+
+    if (showCalibrate) {
+        CalibrateDialog(
+            accounts = accounts,
+            onDismiss = { showCalibrate = false },
+            onConfirm = { targets ->
+                showCalibrate = false
+                scope.launch {
+                    targets.forEach { (id, balance) -> repo.adjustAccountBalance(id, balance) }
+                    toast = "余额已按钱迹校准"
+                }
+            }
+        )
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -73,6 +103,38 @@ fun AssetsScreen(repo: LedgerRepository) {
                         Spacer(Modifier.width(6.dp))
                         Text(stringResource(R.string.assets_01))
                     }
+                }
+                Spacer(Modifier.width(8.dp))
+                Surface(
+                    shape = RoundedCornerShape(50),
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh
+                ) {
+                    OutlinedButton(
+                        onClick = { showCalibrate = true },
+                        border = null,
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 14.dp)
+                    ) {
+                        SymbolText("balance", size = 18.dp)
+                        Spacer(Modifier.width(6.dp))
+                        Text("校准")
+                    }
+                }
+            }
+        }
+
+        if (toast.isNotEmpty()) {
+            item {
+                Surface(
+                    shape = MaterialTheme.shapes.medium,
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    androidx.compose.material3.Text(
+                        toast,
+                        modifier = androidx.compose.ui.Modifier.padding(14.dp),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
                 }
             }
         }
@@ -162,4 +224,70 @@ private fun accountTypeLabel(type: String): String = when (type) {
     "INVEST" -> stringResource(R.string.assets_06)
     "CASH" -> stringResource(R.string.assets_07)
     else -> stringResource(R.string.assets_08)
+}
+
+
+@Composable
+private fun CalibrateDialog(
+    accounts: List<io.github.cyhkbl.within.data.db.AccountEntity>,
+    onDismiss: () -> Unit,
+    onConfirm: (Map<Long, Long>) -> Unit
+) {
+    val inputs = androidx.compose.runtime.remember(accounts) {
+        androidx.compose.runtime.mutableStateMapOf<Long, String>().apply {
+            accounts.forEach { put(it.id, io.github.cyhkbl.within.util.MoneyUtils.formatPlain(it.balance)) }
+        }
+    }
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { androidx.compose.material3.Text("按钱迹的余额校准") },
+        text = {
+            androidx.compose.foundation.layout.Column(
+                modifier = androidx.compose.ui.Modifier.verticalScroll(
+                    androidx.compose.foundation.rememberScrollState()
+                )
+            ) {
+                androidx.compose.material3.Text(
+                    "填每个账户在钱迹里显示的余额。差额会记成一条「余额调整」，只改余额，不计入收支统计。",
+                    style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                androidx.compose.foundation.layout.Spacer(androidx.compose.ui.Modifier.height(10.dp))
+                accounts.forEach { acc ->
+                    androidx.compose.foundation.layout.Row(
+                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                    ) {
+                        androidx.compose.material3.Text(
+                            acc.name,
+                            modifier = androidx.compose.ui.Modifier.weight(1f)
+                        )
+                        androidx.compose.material3.OutlinedTextField(
+                            value = inputs[acc.id] ?: "",
+                            onValueChange = { inputs[acc.id] = it },
+                            singleLine = true,
+                            modifier = androidx.compose.ui.Modifier.width(150.dp),
+                            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                                keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal
+                            )
+                        )
+                    }
+                    androidx.compose.foundation.layout.Spacer(androidx.compose.ui.Modifier.height(6.dp))
+                }
+            }
+        },
+        confirmButton = {
+            androidx.compose.material3.TextButton(onClick = {
+                val targets = accounts.associate { acc ->
+                    val raw = inputs[acc.id]?.toDoubleOrNull() ?: 0.0
+                    acc.id to Math.round(raw * 100)
+                }
+                onConfirm(targets)
+            }) { androidx.compose.material3.Text("校准") }
+        },
+        dismissButton = {
+            androidx.compose.material3.TextButton(onClick = onDismiss) {
+                androidx.compose.material3.Text("取消")
+            }
+        }
+    )
 }

@@ -210,6 +210,7 @@ fun TransactionDetailScreen(
                                 append(stringResource(R.string.detail_15))
                                 current.importBatchId?.take(8)?.let { append(" · #$it") }
                             }
+                            "ADJUST" -> stringResource(R.string.source_adjust)
                             "PERIODIC" -> stringResource(R.string.detail_16)
                             "AUTO" -> stringResource(R.string.detail_17) + (current.sourcePackage?.let { " · $it" } ?: "")
                             else -> current.source
