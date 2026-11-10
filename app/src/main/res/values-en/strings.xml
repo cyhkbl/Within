@@ -244,4 +244,5 @@
     <string name="common_cancel">Cancel</string>
     <string name="common_confirm">OK</string>
     <string name="home_month_expense_fmt">Spent in %1$d</string>
+    <string name="source_adjust">Balance adjustment</string>
 </resources>
