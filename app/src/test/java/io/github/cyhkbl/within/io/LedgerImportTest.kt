@@ -164,5 +164,32 @@ class LedgerImportTest {
         val outcome = LedgerImport.parse(csv, "reimb.csv")
         assertTrue(outcome.rows.first().reimbursable)
     }
+    @Test
+    fun `transfer survives export and reimport round trip`() {
+        val csv = """
+            时间,类型,金额,分类,账户,备注,标签,币种,手续费
+            2026-01-01 10:00:00,转账,100.00,,支付宝 > 招商银行,,,,CNY,0
+        """.trimIndent().toByteArray()
+
+        val outcome = LedgerImport.parse(csv, "roundtrip.csv")
+        val row = outcome.rows.single()
+        assertEquals("TRANSFER", row.kind)
+        assertEquals("支付宝", row.account)
+        assertEquals("招商银行", row.toAccount)
+        assertEquals(10000L, row.amount)
+    }
+
+    @Test
+    fun `same amount and second but distinct ids are both parsed`() {
+        val csv = """
+            ID,时间,类型,金额,分类,账户1
+            qj1,2025-10-17 17:56:40,支出,100.00,三餐,支付宝
+            qj2,2025-10-17 17:56:40,支出,100.00,三餐,支付宝
+        """.trimIndent().toByteArray()
+
+        val outcome = LedgerImport.parse(csv, "twin.csv")
+        assertEquals(2, outcome.rows.size)
+        assertEquals(listOf("qj1", "qj2"), outcome.rows.map { it.externalId })
+    }
     private fun ParsedRow.timestampKey(): String = clock.toString()
 }

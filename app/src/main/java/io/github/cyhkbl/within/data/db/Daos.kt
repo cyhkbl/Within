@@ -164,6 +164,9 @@ interface TransactionDao {
 
     @Query("DELETE FROM transactions")
     suspend fun deleteAll()
+
+    @Query("SELECT sourceRef FROM transactions WHERE sourceRef IS NOT NULL AND sourceRef != ''")
+    suspend fun allSourceRefs(): List<String>
 }
 
 @Dao

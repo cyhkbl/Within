@@ -78,12 +78,17 @@ class HomeViewModel(private val repo: LedgerRepository) : ViewModel() {
             }
 
         val today = LocalDate.now()
+        // 「最近 7 日」永远指今天往前七天，和正在浏览的月份无关，
+        // 所以单独取一次数据，不能复用当月账单。
+        val weekStart = DateUtils.dayRange(today.minusDays(6)).first
+        val weekEnd = DateUtils.dayRange(today).second
+        val weekTx = repo.transactionsOnce(weekStart, weekEnd)
         val weekValues = (6 downTo 0).map { offset ->
             val day = today.minusDays(offset.toLong())
             val (from, to) = DateUtils.dayRange(day)
-            val gross = txs.filter { it.timestamp in from..to && it.kind == "EXPENSE" && !it.excludeFromStats }
+            val gross = weekTx.filter { it.timestamp in from..to && it.kind == "EXPENSE" && !it.excludeFromStats }
                 .sumOf { it.amount }
-            val refundsInDay = txs.filter { it.timestamp in from..to && it.refundedFromId != null }
+            val refundsInDay = weekTx.filter { it.timestamp in from..to && it.refundedFromId != null }
                 .sumOf { it.amount }
             (gross - refundsInDay).coerceAtLeast(0L).toFloat()
         }

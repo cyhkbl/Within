@@ -175,13 +175,28 @@ object LedgerImport {
                 continue
             }
 
-            val account = cell(accountCol)
+            val rawAccount = cell(accountCol)
+            // 转账可能写在同一个单元格里（导出时用 " > " 连接），也可能分两列
+            val account: String
+            val splitToAccount: String
+            if (rawAccount.contains(" > ")) {
+                val parts = rawAccount.split(" > ", limit = 2)
+                account = parts[0].trim()
+                splitToAccount = parts[1].trim()
+            } else if (rawAccount.contains("->")) {
+                val parts = rawAccount.split("->", limit = 2)
+                account = parts[0].trim()
+                splitToAccount = parts[1].trim()
+            } else {
+                account = rawAccount
+                splitToAccount = ""
+            }
             if (account.isBlank()) {
                 issues.add(ParseIssue(lineNo, "缺少账户", cells.joinToString("|")))
                 continue
             }
 
-            val toAccount = cell(toAccountCol)
+            val toAccount = cell(toAccountCol).ifBlank { splitToAccount }
             if (kind == "TRANSFER" && toAccount.isBlank()) {
                 issues.add(ParseIssue(lineNo, "转账缺少转入账户", cells.joinToString("|")))
                 continue

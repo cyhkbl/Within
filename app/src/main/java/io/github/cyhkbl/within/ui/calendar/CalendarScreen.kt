@@ -240,7 +240,7 @@ private fun DayCell(
     Column(
         modifier = modifier
             .padding(2.dp)
-            .height(58.dp)
+            .height(70.dp)
             .clip(RoundedCornerShape(12.dp))
             .background(
                 when {
@@ -264,6 +264,7 @@ private fun DayCell(
             Text(
                 text = compact(expense),
                 fontSize = 9.sp,
+                lineHeight = 11.sp,
                 color = ExpenseRed,
                 maxLines = 1
             )
@@ -272,6 +273,7 @@ private fun DayCell(
             Text(
                 text = compact(income),
                 fontSize = 9.sp,
+                lineHeight = 11.sp,
                 color = IncomeGreen,
                 maxLines = 1
             )
