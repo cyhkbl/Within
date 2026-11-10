@@ -296,9 +296,10 @@ private fun BackupRestoreScreen(onBack: () -> Unit) {
 private fun backupNow(context: Context): String {
     return try {
         val db = LedgerDatabase.get(context)
-        // 把 WAL 里的改动落盘，否则备份出来的可能是旧数据
-        db.openHelper.writableDatabase.query("PRAGMA wal_checkpoint(FULL)").use { it.moveToFirst() }
-        db.close()
+        // 把 WAL 里的改动合并回主文件，这样直接拷 .db 就是完整快照。
+        // 注意：这里绝不能 close()，它是全局单例，关掉之后账单页、资产页会立刻
+        // 抛 "Database is closed" 闪退。
+        db.openHelper.writableDatabase.query("PRAGMA wal_checkpoint(TRUNCATE)").use { it.moveToFirst() }
 
         val source = context.getDatabasePath("ledger.db")
         if (!source.exists()) return "找不到数据库文件，先记一笔再试"
@@ -349,7 +350,18 @@ private fun restoreNow(context: Context, uri: Uri): String {
             target.outputStream().use { input.copyTo(it) }
         } ?: return "读取备份文件失败"
 
-        "恢复完成，请完全退出应用再重新打开"
+        // 数据库已经被替换，当前进程里缓存的连接和 ViewModel 都不再可信，
+        // 直接重启到首页，避免用户切页面时崩溃。
+        val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+        if (intent != null) {
+            intent.addFlags(
+                android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK or
+                    android.content.Intent.FLAG_ACTIVITY_NEW_TASK
+            )
+            context.startActivity(intent)
+        }
+        android.os.Process.killProcess(android.os.Process.myPid())
+        "恢复完成，正在重启"
     } catch (t: Throwable) {
         "恢复失败：" + (t.message ?: "未知错误")
     }

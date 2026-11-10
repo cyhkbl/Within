@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -56,6 +57,7 @@ import io.github.cyhkbl.within.util.MoneyUtils
 import java.time.YearMonth
 import androidx.compose.ui.res.stringResource
 import io.github.cyhkbl.within.R
+import io.github.cyhkbl.within.ui.components.MonthPickerDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -83,8 +85,10 @@ fun HomeScreen(
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
+        contentWindowInsets = WindowInsets(0),
         topBar = {
             TopAppBar(
+                windowInsets = WindowInsets(0),
                 title = {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -190,7 +194,11 @@ private fun SummaryCard(state: HomeUiState) {
     ) {
         Column(modifier = Modifier.padding(22.dp)) {
             Text(
-                text = stringResource(R.string.home_00),
+                text = if (state.month == YearMonth.now()) {
+                    stringResource(R.string.home_00)
+                } else {
+                    stringResource(R.string.home_month_expense_fmt, state.month.monthValue)
+                },
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f)
             )
@@ -386,55 +394,4 @@ private fun weekdayLabels(days: List<Int>): List<String> {
     val names = androidx.compose.ui.platform.LocalContext.current.resources
         .getStringArray(R.array.weekday_short)
     return days.map { day -> names.getOrElse(day - 1) { "" } }
-}
-
-@Composable
-private fun MonthPickerDialog(
-    current: YearMonth,
-    onDismiss: () -> Unit,
-    onSelect: (YearMonth) -> Unit
-) {
-    var year by remember { mutableStateOf(current.year) }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = { year -= 1 }) { SymbolText("chevron_left", size = 22.dp) }
-                Text(
-                    "$year 年",
-                    modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.SemiBold
-                )
-                IconButton(onClick = { year += 1 }) { SymbolText("chevron_right", size = 22.dp) }
-            }
-        },
-        text = {
-            Column {
-                for (rowIndex in 0 until 4) {
-                    Row {
-                        for (colIndex in 0 until 3) {
-                            val monthValue = rowIndex * 3 + colIndex + 1
-                            val selected = year == current.year && monthValue == current.monthValue
-                            TextButton(
-                                onClick = { onSelect(YearMonth.of(year, monthValue)) },
-                                modifier = Modifier.weight(1f),
-                                colors = if (selected) {
-                                    ButtonDefaults.textButtonColors(
-                                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                                    )
-                                } else {
-                                    ButtonDefaults.textButtonColors()
-                                }
-                            ) { Text("$monthValue 月") }
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) { Text("取消") }
-        }
-    )
 }

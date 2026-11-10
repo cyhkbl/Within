@@ -7,7 +7,9 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -85,7 +87,11 @@ fun LedgerRoot(repo: LedgerRepository) {
                 currentRoute = "home",
                 onNavigate = { nav.navigate(it) { launchSingleTop = true; popUpTo("home") { saveState = true } } }
             ) { padding ->
-                Box(modifier = Modifier.padding(padding)) {
+                Box(
+                    modifier = Modifier
+                        .padding(padding)
+                        .statusBarsPadding()
+                ) {
                     HomeScreen(
                         state = state,
                         onPrevMonth = vm::previousMonth,
@@ -115,6 +121,8 @@ fun LedgerRoot(repo: LedgerRepository) {
                 onCategory = vm::selectCategory,
                 onKey = vm::pressKey,
                 onNote = vm::setNote,
+                onAccount = vm::selectAccount,
+                onTimestamp = vm::setTimestamp,
                 onSave = { vm.save { nav.popBackStack() } },
                 onClose = { nav.popBackStack() }
             )
@@ -145,7 +153,11 @@ fun LedgerRoot(repo: LedgerRepository) {
                 currentRoute = "stats",
                 onNavigate = { nav.navigate(it) { launchSingleTop = true; popUpTo("home") { saveState = true } } }
             ) { padding ->
-                Box(modifier = Modifier.padding(padding)) { StatsScreen(repo) }
+                Box(
+                    modifier = Modifier
+                        .padding(padding)
+                        .statusBarsPadding()
+                ) { StatsScreen(repo) }
             }
         }
 
@@ -155,7 +167,11 @@ fun LedgerRoot(repo: LedgerRepository) {
                 currentRoute = "assets",
                 onNavigate = { nav.navigate(it) { launchSingleTop = true; popUpTo("home") { saveState = true } } }
             ) { padding ->
-                Box(modifier = Modifier.padding(padding)) { AssetsScreen(repo) }
+                Box(
+                    modifier = Modifier
+                        .padding(padding)
+                        .statusBarsPadding()
+                ) { AssetsScreen(repo) }
             }
         }
 
@@ -165,7 +181,11 @@ fun LedgerRoot(repo: LedgerRepository) {
                 currentRoute = "more",
                 onNavigate = { nav.navigate(it) { launchSingleTop = true; popUpTo("home") { saveState = true } } }
             ) { padding ->
-                Box(modifier = Modifier.padding(padding)) { MoreScreen(repo) }
+                Box(
+                    modifier = Modifier
+                        .padding(padding)
+                        .statusBarsPadding()
+                ) { MoreScreen(repo) }
             }
         }
     }
@@ -180,6 +200,7 @@ private fun MainShell(
 ) {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
+        contentWindowInsets = WindowInsets(0),
         bottomBar = {
             NavigationBar(
                 containerColor = MaterialTheme.colorScheme.surfaceContainer,

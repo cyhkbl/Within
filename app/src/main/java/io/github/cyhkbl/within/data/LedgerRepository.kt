@@ -21,6 +21,7 @@ class LedgerRepository(private val db: LedgerDatabase) {
     fun transactions(from: Long, to: Long) = db.transactionDao().observeRange(from, to)
     fun recentTransactions(limit: Int = 200) = db.transactionDao().observeRecent(limit)
     suspend fun recentTransactionsOnce(limit: Int = 100_000) = db.transactionDao().listRecent(limit)
+    suspend fun transactionsOnce(from: Long, to: Long) = db.transactionDao().listRange(from, to)
     fun totalBalance() = db.accountDao().observeTotalBalance()
     fun expenseSum(from: Long, to: Long) = db.transactionDao().observeExpenseSum(from, to)
     fun incomeSum(from: Long, to: Long) = db.transactionDao().observeIncomeSum(from, to)
@@ -60,6 +61,7 @@ class LedgerRepository(private val db: LedgerDatabase) {
     suspend fun allCategoriesOnce() = db.categoryDao().listAll()
     suspend fun byBatch(batch: String) = db.transactionDao().byBatch(batch)
     suspend fun allFingerprints() = db.transactionDao().allFingerprints()
+    suspend fun allSourceRefs() = db.transactionDao().allSourceRefs()
 
     /** 清空全部账单并把账户余额归零，用于「撤销旧导入、重新导入」。 */
     suspend fun clearTransactionsAndBalances() = db.withTransaction {

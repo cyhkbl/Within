@@ -29,6 +29,20 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import io.github.cyhkbl.within.util.MoneyUtils
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,9 +67,13 @@ fun EntryScreen(
     onCategory: (Long) -> Unit,
     onKey: (String) -> Unit,
     onNote: (String) -> Unit,
+    onAccount: (Long) -> Unit,
+    onTimestamp: (Long) -> Unit,
     onSave: () -> Unit,
     onClose: () -> Unit
 ) {
+    var showAccountPicker by remember { mutableStateOf(false) }
+    var showTimePicker by remember { mutableStateOf(false) }
     val amountText = if (state.amountInput.isEmpty()) "0.00" else state.amountInput
 
     Column(
@@ -141,7 +159,10 @@ fun EntryScreen(
                     textStyle = MaterialTheme.typography.bodyLarge.copy(
                         color = MaterialTheme.colorScheme.onSurface
                     ),
-                    modifier = Modifier.fillMaxWidth()
+                    maxLines = 3,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 76.dp)
                 )
             }
             Spacer(Modifier.width(12.dp))
@@ -160,12 +181,16 @@ fun EntryScreen(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             val account = state.accounts.firstOrNull { it.id == state.accountId }
-            AssistChip(text = account?.name ?: stringResource(R.string.entry_04), icon = "account_balance_wallet")
             AssistChip(
-                text = stringResource(R.string.entry_05) + DateUtils.formatTime(state.timestamp),
-                icon = "schedule"
+                text = account?.name ?: stringResource(R.string.entry_04),
+                icon = "account_balance_wallet",
+                onClick = { showAccountPicker = true }
             )
-            AssistChip(text = "", icon = "sell")
+            AssistChip(
+                text = DateUtils.formatDateTime(state.timestamp).substring(5),
+                icon = "schedule",
+                onClick = { showTimePicker = true }
+            )
         }
 
         Spacer(Modifier.height(10.dp))
@@ -194,8 +219,10 @@ fun EntryScreen(
                         .padding(4.dp),
                     onClick = { onKey("DEL") }
                 )
+                val amountForSave = state.amountInput.toDoubleOrNull() ?: 0.0
                 Button(
                     onClick = onSave,
+                    enabled = amountForSave > 0.0,
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(3f)
@@ -207,6 +234,57 @@ fun EntryScreen(
                 ) {
                     Text(stringResource(R.string.entry_06), fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
                 }
+            }
+        }
+
+        if (showAccountPicker) {
+            AlertDialog(
+                onDismissRequest = { showAccountPicker = false },
+                title = { Text(stringResource(R.string.entry_04)) },
+                text = {
+                    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                        state.accounts.forEach { acc ->
+                            TextButton(
+                                onClick = {
+                                    onAccount(acc.id)
+                                    showAccountPicker = false
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(acc.name, modifier = Modifier.weight(1f))
+                                Text(MoneyUtils.format(acc.balance))
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showAccountPicker = false }) { Text(stringResource(R.string.common_cancel)) }
+                }
+            )
+        }
+
+        if (showTimePicker) {
+            val dateState = rememberDatePickerState(initialSelectedDateMillis = state.timestamp)
+            @OptIn(ExperimentalMaterial3Api::class)
+            DatePickerDialog(
+                onDismissRequest = { showTimePicker = false },
+                confirmButton = {
+                    TextButton(onClick = {
+                        dateState.selectedDateMillis?.let { millis ->
+                            val zone = java.time.ZoneId.systemDefault()
+                            val old = DateUtils.toLocalDateTime(state.timestamp)
+                            val date = java.time.Instant.ofEpochMilli(millis)
+                                .atZone(zone).toLocalDate()
+                            onTimestamp(date.atTime(old.toLocalTime()).atZone(zone).toInstant().toEpochMilli())
+                        }
+                        showTimePicker = false
+                    }) { Text(stringResource(R.string.common_confirm)) }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showTimePicker = false }) { Text(stringResource(R.string.common_cancel)) }
+                }
+            ) {
+                DatePicker(state = dateState)
             }
         }
     }
@@ -274,11 +352,13 @@ private fun CategoryCell(cat: CategoryEntity, selected: Boolean, onClick: () -> 
 }
 
 @Composable
-private fun AssistChip(text: String, icon: String) {
+private fun AssistChip(text: String, icon: String, onClick: () -> Unit) {
     Surface(
         shape = RoundedCornerShape(50),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        modifier = Modifier.clip(RoundedCornerShape(50))
+        modifier = Modifier
+            .clip(RoundedCornerShape(50))
+            .clickable(onClick = onClick)
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),

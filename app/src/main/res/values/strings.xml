@@ -241,4 +241,7 @@
     <string name="io_status_cancelled">已取消</string>
     <string name="io_status_import_done">导入完成：成功 %1$d 条，跳过 %2$d 条</string>
     <string name="common_error_unknown">未知错误</string>
+    <string name="common_cancel">取消</string>
+    <string name="common_confirm">确定</string>
+    <string name="home_month_expense_fmt">%1$d月支出</string>
 </resources>

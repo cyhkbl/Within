@@ -34,6 +34,11 @@
             android:label="导入导出" />
 
         <activity
+            android:name=".ui.io.BackupRestoreActivity"
+            android:exported="false"
+            android:label="备份与恢复" />
+
+        <activity
             android:name=".autolog.AutoLogSettingsActivity"
             android:exported="false"
             android:label="自动记账" />

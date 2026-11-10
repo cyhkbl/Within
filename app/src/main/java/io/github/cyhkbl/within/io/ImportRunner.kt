@@ -29,29 +29,38 @@ data class ImportSummary(
  * 关键语义：
  * - 转账有两个账户，转出和转入都要动余额；
  * - 退款不增加收入，而是冲抵原账单（找不到原账单时冲抵当月支出）；
- * - 重复导入靠「时间 + 金额 + 账户 + 类型」指纹拦截；
+ * - 去重优先用钱迹的账单 ID；没有 ID 才退回到「时间 + 金额 + 账户 + 类型」指纹。
+ *   只用指纹会误杀真实存在的两笔同额同时间的账单，所以 ID 优先；
  * - 一次导入打同一个批次号，支持整体撤销。
  */
 class ImportRunner(private val repo: LedgerRepository) {
 
     suspend fun preview(outcome: ParseOutcome): ImportPreview {
         val accounts = repo.accountsAllOnce().associateBy { it.name }
-        val existing = repo.allFingerprints()
-            .map { fingerprint(it.timestamp, it.amount, it.accountId, it.kind) }
-            .toHashSet()
+        val dedupe = DedupeState(
+            refs = repo.allSourceRefs().toHashSet(),
+            fingerprints = repo.allFingerprints()
+                .map { fingerprint(it.timestamp, it.amount, it.accountId, it.kind) }
+                .toHashSet()
+        )
 
         var dup = 0
         val fresh = ArrayList<ParsedRow>()
         for (row in outcome.rows) {
             val accountId = accounts[row.account]?.id
-            if (accountId != null) {
+            val cancelled = if (row.externalId.isNotBlank()) {
+                row.externalId in dedupe.refs
+            } else if (accountId != null) {
                 val ts = DateUtils.fromLocalDateTime(row.clock)
-                val kind = effectiveKind(row)
-                if (fingerprint(ts, row.amount, accountId, kind) in existing) {
-                    dup++
-                    continue
-                }
+                fingerprint(ts, row.amount, accountId, effectiveKind(row)) in dedupe.fingerprints
+            } else {
+                false
             }
+            if (cancelled) {
+                dup++
+                continue
+            }
+            if (row.externalId.isNotBlank()) dedupe.refs.add(row.externalId)
             fresh.add(row)
         }
         return ImportPreview(fresh, dup, outcome.issues, outcome.format, outcome.dataLineCount)
@@ -66,9 +75,12 @@ class ImportRunner(private val repo: LedgerRepository) {
         val total = rows.size
         var done = 0
 
-        val existing = repo.allFingerprints()
-            .map { fingerprint(it.timestamp, it.amount, it.accountId, it.kind) }
-            .toHashSet()
+        val dedupe = DedupeState(
+            refs = repo.allSourceRefs().toHashSet(),
+            fingerprints = repo.allFingerprints()
+                .map { fingerprint(it.timestamp, it.amount, it.accountId, it.kind) }
+                .toHashSet()
+        )
         val accounts = HashMap<String, AccountEntity>()
         repo.accountsAllOnce().forEach { accounts[it.name] = it }
         val categories = HashMap<String, CategoryEntity>()
@@ -92,11 +104,13 @@ class ImportRunner(private val repo: LedgerRepository) {
                 val account = accountOf(accounts, row.account)
                 val toAccount = if (row.kind == "TRANSFER") accountOf(accounts, row.toAccount) else null
                 val ts = DateUtils.fromLocalDateTime(row.clock)
-                val fp = fingerprint(ts, row.amount, account.id, row.kind)
-                if (fp in existing) {
+
+                if (isDuplicate(dedupe, row, ts, account.id, row.kind)) {
                     skipped++
                     continue
                 }
+                markSeen(dedupe, row, ts, account.id, row.kind)
+
                 val categoryId = when (row.kind) {
                     "EXPENSE", "INCOME" -> categoryOf(categories, row.category, row.kind)?.id
                     else -> null
@@ -119,7 +133,6 @@ class ImportRunner(private val repo: LedgerRepository) {
                         importBatchId = batchId
                     )
                 )
-                existing.add(fp)
                 if (row.externalId.isNotBlank()) externalMap[row.externalId] = id
                 imported++
             } catch (t: Throwable) {
@@ -134,14 +147,15 @@ class ImportRunner(private val repo: LedgerRepository) {
             try {
                 val account = accountOf(accounts, row.account)
                 val ts = DateUtils.fromLocalDateTime(row.clock)
-                val originalId = row.linkedExternalId.takeIf { it.isNotBlank() }?.let { externalMap[it] }
-                val categoryId = originalId?.let { repo.transactionById(it)?.categoryId }
-                    ?: categoryOf(categories, "退款", "INCOME")?.id
-                val fp = fingerprint(ts, row.amount, account.id, "REFUND")
-                if (fp in existing) {
+                if (isDuplicate(dedupe, row, ts, account.id, "REFUND")) {
                     skipped++
                     continue
                 }
+                markSeen(dedupe, row, ts, account.id, "REFUND")
+
+                val originalId = row.linkedExternalId.takeIf { it.isNotBlank() }?.let { externalMap[it] }
+                val categoryId = originalId?.let { repo.transactionById(it)?.categoryId }
+                    ?: categoryOf(categories, "退款", "INCOME")?.id
                 repo.insertTransaction(
                     TransactionEntity(
                         kind = "INCOME",
@@ -158,7 +172,6 @@ class ImportRunner(private val repo: LedgerRepository) {
                         importBatchId = batchId
                     )
                 )
-                existing.add(fp)
                 imported++
             } catch (t: Throwable) {
                 issues.add(ParseIssue(row.lineNo, "退款写入失败：${t.message ?: "未知错误"}", row.note))
@@ -172,6 +185,33 @@ class ImportRunner(private val repo: LedgerRepository) {
         val rows = repo.byBatch(batchId)
         rows.forEach { repo.deleteTransaction(it) }
         return rows.size
+    }
+
+    private class DedupeState(val refs: HashSet<String>, val fingerprints: HashSet<String>)
+
+    private fun isDuplicate(
+        state: DedupeState,
+        row: ParsedRow,
+        ts: Long,
+        accountId: Long,
+        kind: String
+    ): Boolean {
+        if (row.externalId.isNotBlank()) return row.externalId in state.refs
+        return fingerprint(ts, row.amount, accountId, kind) in state.fingerprints
+    }
+
+    private fun markSeen(
+        state: DedupeState,
+        row: ParsedRow,
+        ts: Long,
+        accountId: Long,
+        kind: String
+    ) {
+        if (row.externalId.isNotBlank()) {
+            state.refs.add(row.externalId)
+        } else {
+            state.fingerprints.add(fingerprint(ts, row.amount, accountId, kind))
+        }
     }
 
     private fun effectiveKind(row: ParsedRow): String =

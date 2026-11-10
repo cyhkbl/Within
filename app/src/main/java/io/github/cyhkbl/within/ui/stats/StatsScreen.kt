@@ -21,6 +21,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.foundation.clickable
+import io.github.cyhkbl.within.ui.components.MonthPickerDialog
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,7 +42,16 @@ import io.github.cyhkbl.within.R
 
 @Composable
 fun StatsScreen(repo: LedgerRepository) {
-    val ym = remember { YearMonth.now() }
+    var ym by remember { mutableStateOf(YearMonth.now()) }
+    var showPicker by remember { mutableStateOf(false) }
+
+    if (showPicker) {
+        MonthPickerDialog(
+            current = ym,
+            onDismiss = { showPicker = false },
+            onSelect = { picked -> ym = picked; showPicker = false }
+        )
+    }
     val range = remember(ym) { DateUtils.monthRange(ym) }
     val txs by repo.transactions(range.first, range.second).collectAsState(initial = emptyList())
     val cats by repo.allCategories().collectAsState(initial = emptyList())
@@ -63,11 +74,20 @@ fun StatsScreen(repo: LedgerRepository) {
         item {
             Column(modifier = Modifier.padding(top = 16.dp, bottom = 4.dp)) {
                 Text(stringResource(R.string.stats_00), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
-                Text(
-                    DateUtils.formatMonthLabel(ym),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Row(
+                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                    modifier = Modifier
+                        .clip(androidx.compose.foundation.shape.RoundedCornerShape(50))
+                        .clickable { showPicker = true }
+                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                ) {
+                    Text(
+                        DateUtils.formatMonthLabel(ym),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    SymbolText("expand_more", size = 16.dp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
         }
 
