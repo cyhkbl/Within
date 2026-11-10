@@ -64,7 +64,7 @@ fun CalendarScreen(
     val catMap = remember(cats) { cats.associateBy { it.id } }
 
     val byDay = remember(txs) {
-        txs.groupBy { DateUtils.toLocalDate(it.timestamp) }
+        txs.filter { it.source != "ADJUST" }.groupBy { DateUtils.toLocalDate(it.timestamp) }
     }
 
     val firstDay = month.atDay(1)
