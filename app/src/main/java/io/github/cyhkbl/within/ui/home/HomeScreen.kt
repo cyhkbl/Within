@@ -20,6 +20,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LargeFloatingActionButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -54,10 +63,24 @@ fun HomeScreen(
     state: HomeUiState,
     onPrevMonth: () -> Unit,
     onNextMonth: () -> Unit,
+    onSelectMonth: (YearMonth) -> Unit,
     onAdd: () -> Unit,
     onOpenCalendar: () -> Unit,
     onTxClick: (TransactionEntity) -> Unit
 ) {
+    var showMonthPicker by remember { mutableStateOf(false) }
+
+    if (showMonthPicker) {
+        MonthPickerDialog(
+            current = state.month,
+            onDismiss = { showMonthPicker = false },
+            onSelect = { ym ->
+                onSelectMonth(ym)
+                showMonthPicker = false
+            }
+        )
+    }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
@@ -67,7 +90,7 @@ fun HomeScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .clip(RoundedCornerShape(50))
-                            .clickable { }
+                            .clickable { showMonthPicker = true }
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
                         Text(
@@ -363,4 +386,55 @@ private fun weekdayLabels(days: List<Int>): List<String> {
     val names = androidx.compose.ui.platform.LocalContext.current.resources
         .getStringArray(R.array.weekday_short)
     return days.map { day -> names.getOrElse(day - 1) { "" } }
+}
+
+@Composable
+private fun MonthPickerDialog(
+    current: YearMonth,
+    onDismiss: () -> Unit,
+    onSelect: (YearMonth) -> Unit
+) {
+    var year by remember { mutableStateOf(current.year) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = { year -= 1 }) { SymbolText("chevron_left", size = 22.dp) }
+                Text(
+                    "$year 年",
+                    modifier = Modifier.weight(1f),
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.SemiBold
+                )
+                IconButton(onClick = { year += 1 }) { SymbolText("chevron_right", size = 22.dp) }
+            }
+        },
+        text = {
+            Column {
+                for (rowIndex in 0 until 4) {
+                    Row {
+                        for (colIndex in 0 until 3) {
+                            val monthValue = rowIndex * 3 + colIndex + 1
+                            val selected = year == current.year && monthValue == current.monthValue
+                            TextButton(
+                                onClick = { onSelect(YearMonth.of(year, monthValue)) },
+                                modifier = Modifier.weight(1f),
+                                colors = if (selected) {
+                                    ButtonDefaults.textButtonColors(
+                                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                } else {
+                                    ButtonDefaults.textButtonColors()
+                                }
+                            ) { Text("$monthValue 月") }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text("取消") }
+        }
+    )
 }

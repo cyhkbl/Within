@@ -109,6 +109,10 @@ class HomeViewModel(private val repo: LedgerRepository) : ViewModel() {
         month.value = month.value.minusMonths(1)
     }
 
+    fun setMonth(target: YearMonth) {
+        month.value = target
+    }
+
     fun nextMonth() {
         month.value = month.value.plusMonths(1)
     }

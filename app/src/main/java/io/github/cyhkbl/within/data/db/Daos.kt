@@ -45,6 +45,9 @@ interface AccountDao {
     @Query("UPDATE accounts SET balance = balance + :delta WHERE id = :id")
     suspend fun addBalance(id: Long, delta: Long)
 
+    @Query("UPDATE accounts SET balance = 0")
+    suspend fun resetBalances()
+
     @Insert
     suspend fun insert(account: AccountEntity): Long
 
@@ -149,6 +152,18 @@ interface TransactionDao {
 
     @Query("SELECT * FROM transactions WHERE timestamp BETWEEN :from AND :to ORDER BY timestamp DESC, id DESC")
     suspend fun listRange(from: Long, to: Long): List<TransactionEntity>
+
+    @Query("SELECT * FROM transactions WHERE importBatchId = :batch ORDER BY id ASC")
+    suspend fun byBatch(batch: String): List<TransactionEntity>
+
+    @Query("SELECT COUNT(*) FROM transactions WHERE timestamp = :ts AND amount = :amount AND accountId = :accountId AND kind = :kind")
+    suspend fun countFingerprint(ts: Long, amount: Long, accountId: Long, kind: String): Int
+
+    @Query("SELECT timestamp, amount, accountId, kind FROM transactions")
+    suspend fun allFingerprints(): List<FingerprintRow>
+
+    @Query("DELETE FROM transactions")
+    suspend fun deleteAll()
 }
 
 @Dao
@@ -180,3 +195,11 @@ interface TagDao {
     @Query("DELETE FROM tags WHERE id = :id")
     suspend fun deleteById(id: Long)
 }
+
+/** 去重用的指纹行，只取需要的四列。 */
+data class FingerprintRow(
+    val timestamp: Long,
+    val amount: Long,
+    val accountId: Long,
+    val kind: String
+)

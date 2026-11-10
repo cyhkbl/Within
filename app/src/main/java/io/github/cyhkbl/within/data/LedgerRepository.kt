@@ -58,6 +58,14 @@ class LedgerRepository(private val db: LedgerDatabase) {
     suspend fun normalizeRefundFlags() = db.transactionDao().normalizeRefundFlags()
 
     suspend fun allCategoriesOnce() = db.categoryDao().listAll()
+    suspend fun byBatch(batch: String) = db.transactionDao().byBatch(batch)
+    suspend fun allFingerprints() = db.transactionDao().allFingerprints()
+
+    /** 清空全部账单并把账户余额归零，用于「撤销旧导入、重新导入」。 */
+    suspend fun clearTransactionsAndBalances() = db.withTransaction {
+        db.transactionDao().deleteAll()
+        db.accountDao().resetBalances()
+    }
     suspend fun accountsAllOnce() = db.accountDao().listAll()
 
     private suspend fun applyBalanceDelta(tx: TransactionEntity, sign: Int) {

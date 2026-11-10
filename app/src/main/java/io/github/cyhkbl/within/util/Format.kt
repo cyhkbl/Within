@@ -62,7 +62,7 @@ object DateUtils {
         toLocalDateTime(ts).format(DateTimeFormatter.ofPattern("HH:mm", Locale.getDefault()))
 
     fun formatDateTime(ts: Long): String =
-        toLocalDateTime(ts).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm", Locale.getDefault()))
+        toLocalDateTime(ts).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss", Locale.getDefault()))
 
     fun formatMonthLabel(ym: YearMonth): String = "${ym.year}年${ym.monthValue}月"
 }
