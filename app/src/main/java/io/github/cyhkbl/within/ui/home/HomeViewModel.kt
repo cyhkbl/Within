@@ -53,7 +53,9 @@ class HomeViewModel(private val repo: LedgerRepository) : ViewModel() {
         repo.allCategories(),
         repo.accountsAll(),
         repo.totalBalance()
-    ) { ym, txs, cats, accounts, total ->
+    ) { ym, rawTxs, cats, accounts, total ->
+        // 余额调整只为让账户余额自洽，不当作真实收支，列表和统计里都不出现
+        val txs = rawTxs.filter { it.source != "ADJUST" }
         val catMap = cats.associateBy { it.id }
         val accMap = accounts.associateBy { it.id }
 
