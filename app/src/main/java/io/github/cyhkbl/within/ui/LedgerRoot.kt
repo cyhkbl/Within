@@ -90,6 +90,7 @@ fun LedgerRoot(repo: LedgerRepository) {
                         state = state,
                         onPrevMonth = vm::previousMonth,
                         onNextMonth = vm::nextMonth,
+                    onSelectMonth = vm::setMonth,
                         onAdd = { nav.navigate("entry") },
                         onOpenCalendar = { nav.navigate("calendar") },
                         onTxClick = { tx -> nav.navigate("detail/${tx.id}") }

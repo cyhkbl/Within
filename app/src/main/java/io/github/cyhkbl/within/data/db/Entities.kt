@@ -49,7 +49,8 @@ data class CategoryEntity(
         Index("categoryId"),
         Index("accountId"),
         Index("sourceRef"),
-        Index("bookId")
+        Index("bookId"),
+        Index("importBatchId")
     ]
 )
 data class TransactionEntity(
@@ -74,7 +75,8 @@ data class TransactionEntity(
     val fee: Long = 0L,
     val refundedFromId: Long? = null,
     val reimbursable: Boolean = false,
-    val reimbursementStatus: String = "NONE"
+    val reimbursementStatus: String = "NONE",
+    val importBatchId: String? = null     // 同一次导入共用，用于整体撤销
 )
 
 @Entity(tableName = "budgets", indices = [Index("categoryId")])

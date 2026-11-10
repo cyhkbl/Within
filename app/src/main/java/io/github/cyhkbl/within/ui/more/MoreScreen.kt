@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import io.github.cyhkbl.within.autolog.AutoLogSettingsActivity
 import io.github.cyhkbl.within.data.LedgerRepository
 import io.github.cyhkbl.within.ui.category.CategoryManageActivity
+import io.github.cyhkbl.within.ui.io.BackupRestoreActivity
 import io.github.cyhkbl.within.ui.io.ImportExportActivity
 import io.github.cyhkbl.within.ui.components.CategoryGlyph
 import io.github.cyhkbl.within.ui.components.SymbolText
@@ -98,8 +99,11 @@ fun MoreScreen(repo: LedgerRepository) {
                                         R.string.more_02 -> context.startActivity(
                                             android.content.Intent(context, CategoryManageActivity::class.java)
                                         )
-                                        R.string.more_08, R.string.more_10, R.string.more_12 -> context.startActivity(
+                                        R.string.more_08, R.string.more_10 -> context.startActivity(
                                             android.content.Intent(context, ImportExportActivity::class.java)
+                                        )
+                                        R.string.more_12 -> context.startActivity(
+                                            android.content.Intent(context, BackupRestoreActivity::class.java)
                                         )
                                         R.string.more_14 -> showAppearance = true
                                         R.string.more_16 -> showAbout = true

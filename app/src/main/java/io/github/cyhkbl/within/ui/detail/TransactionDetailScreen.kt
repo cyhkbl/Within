@@ -206,7 +206,10 @@ fun TransactionDetailScreen(
                         stringResource(R.string.detail_13),
                         when (current.source) {
                             "REFUND" -> stringResource(R.string.detail_14)
-                            "IMPORT" -> stringResource(R.string.detail_15)
+                            "IMPORT" -> buildString {
+                                append(stringResource(R.string.detail_15))
+                                current.importBatchId?.take(8)?.let { append(" · #$it") }
+                            }
                             "PERIODIC" -> stringResource(R.string.detail_16)
                             "AUTO" -> stringResource(R.string.detail_17) + (current.sourcePackage?.let { " · $it" } ?: "")
                             else -> current.source
