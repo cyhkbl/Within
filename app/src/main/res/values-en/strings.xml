@@ -204,13 +204,6 @@
     <string name="more_17">Version and licences</string>
     <string name="more_18">Me</string>
     <string name="more_19">Settings and data</string>
-    <string name="more_20">Auto-record</string>
-    <string name="more_21">Categories</string>
-    <string name="more_22">Import</string>
-    <string name="more_23">Export</string>
-    <string name="more_24">Backup and restore</string>
-    <string name="more_25">Appearance</string>
-    <string name="more_26">About</string>
     <string name="more_27">About</string>
     <string name="more_28">Within v1.0.0</string>
     <string name="more_29">Everything stays on this device — no account, no cloud sync, no ads. Auto-record only reads system payment notifications and payment result screens; nothing is uploaded.</string>
