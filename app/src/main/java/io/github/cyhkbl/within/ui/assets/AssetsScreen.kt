@@ -328,6 +328,9 @@ private fun ChannelPickerDialog(
     onDismiss: () -> Unit,
     onPick: (AccountChannel) -> Unit
 ) {
+    val scrollState = rememberScrollState()
+    LaunchedEffect(title) { scrollState.scrollTo(0) }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title, style = MaterialTheme.typography.titleLarge) },
@@ -335,12 +338,14 @@ private fun ChannelPickerDialog(
             Column(
                 modifier = Modifier
                     .heightIn(max = 520.dp)
-                    .verticalScroll(rememberScrollState())
+                    .verticalScroll(scrollState)
             ) {
                 listOf(
                     AccountChannels.FUND to AccountChannels.fundChannels,
                     AccountChannels.CREDIT to AccountChannels.creditChannels,
-                    AccountChannels.RECHARGE to AccountChannels.rechargeChannels
+                    AccountChannels.RECHARGE to AccountChannels.rechargeChannels,
+                    AccountChannels.INVEST to AccountChannels.investChannels,
+                    AccountChannels.DEBT to AccountChannels.debtChannels
                 ).forEach { (group, channels) ->
                     Text(
                         AccountChannels.groupLabel(group),
