@@ -10,7 +10,8 @@ data class AccountChannel(
     val key: String,
     val label: String,
     val group: String,     // FUND / CREDIT / RECHARGE / INVEST / DEBT
-    val brand: Long        // ARGB 品牌色
+    val brand: Long,       // ARGB 品牌色
+    val parent: String? = null   // 非空表示是某个渠道的子项（如「银行卡」下的具体银行）
 )
 
 object AccountChannels {
@@ -32,16 +33,16 @@ object AccountChannels {
         AccountChannel("purse", "小荷包", FUND, 0xFFFF4757),
         AccountChannel("yunshanfu", "云闪付", FUND, 0xFFE1251B),
         AccountChannel("bank", "银行卡", FUND, 0xFF2E86DE),
-        AccountChannel("icbc", "工商银行", FUND, 0xFFC7000B),
-        AccountChannel("boc", "中国银行", FUND, 0xFFA6093D),
-        AccountChannel("cmb", "招商银行", FUND, 0xFFD3001D),
-        AccountChannel("ccb", "建设银行", FUND, 0xFF0055A5),
-        AccountChannel("abc", "农业银行", FUND, 0xFF009B4C),
-        AccountChannel("bocom", "交通银行", FUND, 0xFF005BAC),
-        AccountChannel("psbc", "邮储银行", FUND, 0xFF008A5B),
-        AccountChannel("pingan", "平安银行", FUND, 0xFFF36F21),
-        AccountChannel("spdb", "浦发银行", FUND, 0xFF005BAC),
-        AccountChannel("citic", "中信银行", FUND, 0xFFE60012),
+        AccountChannel("icbc", "工商银行", FUND, 0xFFC7000B, "bank"),
+        AccountChannel("boc", "中国银行", FUND, 0xFFA6093D, "bank"),
+        AccountChannel("cmb", "招商银行", FUND, 0xFFD3001D, "bank"),
+        AccountChannel("ccb", "建设银行", FUND, 0xFF0055A5, "bank"),
+        AccountChannel("abc", "农业银行", FUND, 0xFF009B4C, "bank"),
+        AccountChannel("bocom", "交通银行", FUND, 0xFF005BAC, "bank"),
+        AccountChannel("psbc", "邮储银行", FUND, 0xFF008A5B, "bank"),
+        AccountChannel("pingan", "平安银行", FUND, 0xFFF36F21, "bank"),
+        AccountChannel("spdb", "浦发银行", FUND, 0xFF005BAC, "bank"),
+        AccountChannel("citic", "中信银行", FUND, 0xFFE60012, "bank"),
         AccountChannel("housing_fund", "公积金", FUND, 0xFF7A4FCF),
         AccountChannel("qq", "QQ 钱包", FUND, 0xFF12B7F5),
         AccountChannel("jd", "京东金融", FUND, 0xFFE1251B),
@@ -90,11 +91,19 @@ object AccountChannels {
         AccountChannel("borrow_in", "借入", DEBT, 0xFF2ED573)
     )
 
-    val fundChannels get() = all.filter { it.group == FUND }
-    val creditChannels get() = all.filter { it.group == CREDIT }
-    val rechargeChannels get() = all.filter { it.group == RECHARGE }
-    val investChannels get() = all.filter { it.group == INVEST }
-    val debtChannels get() = all.filter { it.group == DEBT }
+    /** 一级渠道（有子项的渠道不直接展开）。 */
+    val topLevel: List<AccountChannel> get() = all.filter { it.parent == null }
+
+    /** 某个渠道下的子项，比如「银行卡」下的各家银行。 */
+    fun childrenOf(key: String): List<AccountChannel> = all.filter { it.parent == key }
+
+    fun hasChildren(key: String): Boolean = all.any { it.parent == key }
+
+    val fundChannels get() = all.filter { it.group == FUND && it.parent == null }
+    val creditChannels get() = all.filter { it.group == CREDIT && it.parent == null }
+    val rechargeChannels get() = all.filter { it.group == RECHARGE && it.parent == null }
+    val investChannels get() = all.filter { it.group == INVEST && it.parent == null }
+    val debtChannels get() = all.filter { it.group == DEBT && it.parent == null }
 
     fun byKey(key: String?): AccountChannel? = all.firstOrNull { it.key == key }
 
