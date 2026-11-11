@@ -1,5 +1,6 @@
 package io.github.cyhkbl.within.ui.assets
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -321,77 +322,131 @@ fun AssetsScreen(repo: LedgerRepository) {
     }
 }
 
-/** 渠道选择：按资金 / 信用 / 充值分组，4 列网格，和钱迹的资产分类页一个结构。 */
+/** 渠道选择：一级按资金 / 信用 / 充值 / 投资 / 债务分组，有子项的（如银行卡）再进一层。 */
 @Composable
 private fun ChannelPickerDialog(
     title: String,
     onDismiss: () -> Unit,
     onPick: (AccountChannel) -> Unit
 ) {
+    var expanded by remember { mutableStateOf<AccountChannel?>(null) }
     val scrollState = rememberScrollState()
-    LaunchedEffect(title) { scrollState.scrollTo(0) }
+    LaunchedEffect(title, expanded) { scrollState.scrollTo(0) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(title, style = MaterialTheme.typography.titleLarge) },
+        title = {
+            Text(
+                expanded?.label ?: title,
+                style = MaterialTheme.typography.titleLarge
+            )
+        },
         text = {
             Column(
                 modifier = Modifier
                     .heightIn(max = 520.dp)
                     .verticalScroll(scrollState)
             ) {
-                listOf(
-                    AccountChannels.FUND to AccountChannels.fundChannels,
-                    AccountChannels.CREDIT to AccountChannels.creditChannels,
-                    AccountChannels.RECHARGE to AccountChannels.rechargeChannels,
-                    AccountChannels.INVEST to AccountChannels.investChannels,
-                    AccountChannels.DEBT to AccountChannels.debtChannels
-                ).forEach { (group, channels) ->
-                    Text(
-                        AccountChannels.groupLabel(group),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold
+                val current = expanded
+                if (current != null) {
+                    ChannelGrid(
+                        channels = AccountChannels.childrenOf(current.key),
+                        onPick = { onPick(it) }
                     )
-                    Spacer(Modifier.height(10.dp))
-                    channels.chunked(4).forEach { rowChannels ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            rowChannels.forEach { option ->
-                                Column(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .clip(RoundedCornerShape(16.dp))
-                                        .clickable { onPick(option) }
-                                        .padding(vertical = 6.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    ChannelGlyph(channel = option.key, size = 44.dp)
-                                    Spacer(Modifier.height(5.dp))
-                                    Text(
-                                        option.label,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        maxLines = 1,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
+                } else {
+                    listOf(
+                        AccountChannels.FUND to AccountChannels.fundChannels,
+                        AccountChannels.CREDIT to AccountChannels.creditChannels,
+                        AccountChannels.RECHARGE to AccountChannels.rechargeChannels,
+                        AccountChannels.INVEST to AccountChannels.investChannels,
+                        AccountChannels.DEBT to AccountChannels.debtChannels
+                    ).forEach { (group, channels) ->
+                        Text(
+                            AccountChannels.groupLabel(group),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Spacer(Modifier.height(10.dp))
+                        ChannelGrid(
+                            channels = channels,
+                            onPick = { option ->
+                                if (AccountChannels.hasChildren(option.key)) {
+                                    expanded = option
+                                } else {
+                                    onPick(option)
                                 }
                             }
-                            repeat(4 - rowChannels.size) {
-                                Box(modifier = Modifier.weight(1f))
-                            }
-                        }
-                        Spacer(Modifier.height(8.dp))
+                        )
+                        Spacer(Modifier.height(10.dp))
                     }
-                    Spacer(Modifier.height(8.dp))
                 }
             }
         },
         confirmButton = {},
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("取消") }
+            TextButton(onClick = {
+                if (expanded != null) expanded = null else onDismiss()
+            }) {
+                Text(if (expanded != null) "返回" else "取消")
+            }
         }
     )
+}
+
+/** 4 列图标网格，有子项的右下角带一个小箭头。 */
+@Composable
+private fun ChannelGrid(
+    channels: List<AccountChannel>,
+    onPick: (AccountChannel) -> Unit
+) {
+    Column {
+        channels.chunked(4).forEach { rowChannels ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                rowChannels.forEach { option ->
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(16.dp))
+                            .clickable { onPick(option) }
+                            .padding(vertical = 6.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Box {
+                            ChannelGlyph(channel = option.key, size = 44.dp)
+                            if (AccountChannels.hasChildren(option.key)) {
+                                Box(
+                                    modifier = Modifier
+                                        .align(Alignment.BottomEnd)
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .background(MaterialTheme.colorScheme.surface)
+                                ) {
+                                    SymbolText(
+                                        "chevron_right",
+                                        size = 13.dp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                        Spacer(Modifier.height(5.dp))
+                        Text(
+                            option.label,
+                            style = MaterialTheme.typography.labelSmall,
+                            maxLines = 1,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+                repeat(4 - rowChannels.size) {
+                    Box(modifier = Modifier.weight(1f))
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+        }
+    }
 }
 
 /** 填名称和余额。渠道单独显示，点一下能换。 */
