@@ -40,10 +40,11 @@ fun ChannelGlyph(channel: String?, size: Dp = 44.dp) {
     ) {
         val res = skin.iconRes
         if (res != null) {
+            // 图标本身已经烤进品牌色，这里不能再 tint，否则会被主题色盖掉
             Icon(
                 painter = painterResource(res),
                 contentDescription = null,
-                tint = skin.brand,
+                tint = Color.Unspecified,
                 modifier = Modifier.size(size * 0.62f)
             )
         } else {
