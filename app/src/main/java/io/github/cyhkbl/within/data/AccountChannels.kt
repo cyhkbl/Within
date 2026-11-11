@@ -32,6 +32,16 @@ object AccountChannels {
         AccountChannel("purse", "小荷包", FUND, 0xFFFF4757),
         AccountChannel("yunshanfu", "云闪付", FUND, 0xFFE1251B),
         AccountChannel("bank", "银行卡", FUND, 0xFF2E86DE),
+        AccountChannel("icbc", "工商银行", FUND, 0xFFC7000B),
+        AccountChannel("boc", "中国银行", FUND, 0xFFA6093D),
+        AccountChannel("cmb", "招商银行", FUND, 0xFFD3001D),
+        AccountChannel("ccb", "建设银行", FUND, 0xFF0055A5),
+        AccountChannel("abc", "农业银行", FUND, 0xFF009B4C),
+        AccountChannel("bocom", "交通银行", FUND, 0xFF005BAC),
+        AccountChannel("psbc", "邮储银行", FUND, 0xFF008A5B),
+        AccountChannel("pingan", "平安银行", FUND, 0xFFF36F21),
+        AccountChannel("spdb", "浦发银行", FUND, 0xFF005BAC),
+        AccountChannel("citic", "中信银行", FUND, 0xFFE60012),
         AccountChannel("housing_fund", "公积金", FUND, 0xFF7A4FCF),
         AccountChannel("qq", "QQ 钱包", FUND, 0xFF12B7F5),
         AccountChannel("jd", "京东金融", FUND, 0xFFE1251B),
@@ -137,7 +147,16 @@ object AccountChannels {
             n.contains("会员") -> "member_card"
             n.contains("加油") -> "fuel_card"
             n.contains("Apple") || n.contains("apple") -> "apple"
-            // 银行一律归到银行卡，账户名本身保留
+            n.contains("工商") -> "icbc"
+            n.contains("中国银行") || n == "中行" -> "boc"
+            n.contains("招商") -> "cmb"
+            n.contains("建设") -> "ccb"
+            n.contains("农业") -> "abc"
+            n.contains("交通银行") -> "bocom"
+            n.contains("邮储") || n.contains("邮政") -> "psbc"
+            n.contains("平安") -> "pingan"
+            n.contains("浦发") -> "spdb"
+            n.contains("中信") -> "citic"
             n.contains("银行") -> "bank"
             n.contains("信用") || legacyType == "CREDIT" -> "credit"
             n.contains("现金") || legacyType == "CASH" -> "cash"

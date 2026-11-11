@@ -36,11 +36,15 @@ fun ChannelGlyph(channel: String?, size: Dp = 44.dp) {
         contentAlignment = Alignment.Center
     ) {
         if (drawable != null) {
+            val isBitmap = drawable in bitmapIcons
             Icon(
                 painter = painterResource(drawable),
                 contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(size * 0.58f)
+                tint = if (isBitmap) Color.Unspecified else Color.White,
+                modifier = Modifier
+                    .size(if (isBitmap) size * 0.72f else size * 0.58f)
+                    // 位图 logo 是「标志 + 文字」的横排，裁成圆形只留标志
+                    .then(if (isBitmap) Modifier.clip(CircleShape) else Modifier)
             )
         } else {
             SymbolText(
@@ -52,8 +56,26 @@ fun ChannelGlyph(channel: String?, size: Dp = 44.dp) {
     }
 }
 
+/** 用位图渲染的银行 logo（官方横排标志，显示时裁圆只留标志）。 */
+private val bitmapIcons: Set<Int> = setOf(
+    R.drawable.ic_bank_icbc, R.drawable.ic_bank_boc, R.drawable.ic_bank_cmb,
+    R.drawable.ic_bank_ccb, R.drawable.ic_bank_abc, R.drawable.ic_bank_bocom,
+    R.drawable.ic_bank_psbc, R.drawable.ic_bank_pingan, R.drawable.ic_bank_spdb,
+    R.drawable.ic_bank_citic, R.drawable.ic_bank_unionpay
+)
+
 /** 有精确官方 logo 的渠道。 */
 private fun drawableFor(channel: String?): Int? = when (channel) {
+    "icbc" -> R.drawable.ic_bank_icbc
+    "boc" -> R.drawable.ic_bank_boc
+    "cmb" -> R.drawable.ic_bank_cmb
+    "ccb" -> R.drawable.ic_bank_ccb
+    "abc" -> R.drawable.ic_bank_abc
+    "bocom" -> R.drawable.ic_bank_bocom
+    "psbc" -> R.drawable.ic_bank_psbc
+    "pingan" -> R.drawable.ic_bank_pingan
+    "spdb" -> R.drawable.ic_bank_spdb
+    "citic" -> R.drawable.ic_bank_citic
     "wechat" -> R.drawable.ic_channel_wechat
     "alipay" -> R.drawable.ic_channel_alipay
     "cash" -> R.drawable.ic_channel_cash
