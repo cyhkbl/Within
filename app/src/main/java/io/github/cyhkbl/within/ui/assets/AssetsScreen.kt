@@ -4,25 +4,26 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.LargeFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.LargeFloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -46,6 +47,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.cyhkbl.within.R
+import io.github.cyhkbl.within.data.AccountChannel
 import io.github.cyhkbl.within.data.AccountChannels
 import io.github.cyhkbl.within.data.LedgerRepository
 import io.github.cyhkbl.within.data.db.AccountEntity
@@ -57,8 +59,8 @@ import kotlinx.coroutines.launch
 /**
  * 资产页。
  *
- * 账户类型就是渠道（微信、支付宝、工商银行……），点账户直接编辑，
- * 右下角新建时先选渠道，名称按渠道自动生成（微信 → 微信2）。
+ * 新建账户分两步（先挑渠道、再填名称和余额），和钱迹一样；
+ * 编辑已有账户时渠道可以换，余额改动会生成一笔「余额调整」。
  */
 @Composable
 fun AssetsScreen(repo: LedgerRepository) {
@@ -66,8 +68,11 @@ fun AssetsScreen(repo: LedgerRepository) {
     val total by repo.totalBalance().collectAsState(initial = 0L)
     val scope = rememberCoroutineScope()
 
-    var editing by remember { mutableStateOf<AccountEntity?>(null) }
-    var creating by remember { mutableStateOf(false) }
+    var editorTarget by remember { mutableStateOf<AccountEntity?>(null) }
+    var creatingWithChannel by remember { mutableStateOf<AccountChannel?>(null) }
+    var pickingChannelFor by remember { mutableStateOf<AccountEntity?>(null) }
+    var showChannelPicker by remember { mutableStateOf(false) }
+    var showCreatePicker by remember { mutableStateOf(false) }
     var pendingDelete by remember { mutableStateOf<AccountEntity?>(null) }
     var toast by remember { mutableStateOf("") }
 
@@ -78,13 +83,31 @@ fun AssetsScreen(repo: LedgerRepository) {
         }
     }
 
-    if (creating) {
+    // ── 新建：第一步选渠道 ──
+    if (showCreatePicker) {
+        ChannelPickerDialog(
+            title = "选择资产分类",
+            onDismiss = { showCreatePicker = false },
+            onPick = { channel ->
+                showCreatePicker = false
+                creatingWithChannel = channel
+            }
+        )
+    }
+
+    // ── 新建：第二步填信息 ──
+    creatingWithChannel?.let { channel ->
         AccountEditDialog(
             initial = null,
+            channel = channel,
             existingNames = accounts.map { it.name },
-            onDismiss = { creating = false },
+            onChangeChannel = {
+                creatingWithChannel = null
+                showCreatePicker = true
+            },
+            onDismiss = { creatingWithChannel = null },
             onSave = { entity ->
-                creating = false
+                creatingWithChannel = null
                 scope.launch {
                     repo.saveAccount(entity)
                     toast = "已添加「${entity.name}」"
@@ -94,13 +117,20 @@ fun AssetsScreen(repo: LedgerRepository) {
         )
     }
 
-    editing?.let { account ->
+    // ── 编辑已有账户 ──
+    editorTarget?.let { account ->
         AccountEditDialog(
             initial = account,
+            channel = AccountChannels.byKey(account.type) ?: AccountChannels.all.last(),
             existingNames = accounts.map { it.name },
-            onDismiss = { editing = null },
+            onChangeChannel = {
+                pickingChannelFor = account
+                editorTarget = null
+                showChannelPicker = true
+            },
+            onDismiss = { editorTarget = null },
             onSave = { entity ->
-                editing = null
+                editorTarget = null
                 scope.launch {
                     val old = repo.accountById(entity.id)
                     repo.saveAccount(entity.copy(balance = old?.balance ?: 0L))
@@ -111,8 +141,26 @@ fun AssetsScreen(repo: LedgerRepository) {
                 }
             },
             onDelete = {
-                editing = null
+                editorTarget = null
                 pendingDelete = account
+            }
+        )
+    }
+
+    if (showChannelPicker) {
+        ChannelPickerDialog(
+            title = "更换渠道",
+            onDismiss = {
+                showChannelPicker = false
+                pickingChannelFor = null
+            },
+            onPick = { channel ->
+                showChannelPicker = false
+                val target = pickingChannelFor
+                pickingChannelFor = null
+                if (target != null) {
+                    editorTarget = target.copy(type = channel.key)
+                }
             }
         )
     }
@@ -148,7 +196,7 @@ fun AssetsScreen(repo: LedgerRepository) {
         containerColor = MaterialTheme.colorScheme.surface,
         floatingActionButton = {
             LargeFloatingActionButton(
-                onClick = { creating = true },
+                onClick = { showCreatePicker = true },
                 shape = MaterialTheme.shapes.large,
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -234,7 +282,7 @@ fun AssetsScreen(repo: LedgerRepository) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clickable { editing = account }
+                                    .clickable { editorTarget = account }
                                     .padding(horizontal = 18.dp, vertical = 14.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -242,7 +290,6 @@ fun AssetsScreen(repo: LedgerRepository) {
                                 Spacer(Modifier.width(14.dp))
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(account.name, style = MaterialTheme.typography.titleMedium)
-                                    // 名字和渠道一致时不重复显示（「支付宝 / 支付宝」）
                                     val channelLabel = AccountChannels.labelOf(account.type)
                                     if (account.name != channelLabel) {
                                         Text(
@@ -274,80 +321,131 @@ fun AssetsScreen(repo: LedgerRepository) {
     }
 }
 
+/** 渠道选择：按资金 / 信用 / 充值分组，4 列网格，和钱迹的资产分类页一个结构。 */
+@Composable
+private fun ChannelPickerDialog(
+    title: String,
+    onDismiss: () -> Unit,
+    onPick: (AccountChannel) -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title, style = MaterialTheme.typography.titleLarge) },
+        text = {
+            Column(
+                modifier = Modifier
+                    .heightIn(max = 520.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                listOf(
+                    AccountChannels.FUND to AccountChannels.fundChannels,
+                    AccountChannels.CREDIT to AccountChannels.creditChannels,
+                    AccountChannels.RECHARGE to AccountChannels.rechargeChannels
+                ).forEach { (group, channels) ->
+                    Text(
+                        AccountChannels.groupLabel(group),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    channels.chunked(4).forEach { rowChannels ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            rowChannels.forEach { option ->
+                                Column(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clip(RoundedCornerShape(16.dp))
+                                        .clickable { onPick(option) }
+                                        .padding(vertical = 6.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    ChannelGlyph(channel = option.key, size = 44.dp)
+                                    Spacer(Modifier.height(5.dp))
+                                    Text(
+                                        option.label,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        maxLines = 1,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                            repeat(4 - rowChannels.size) {
+                                Box(modifier = Modifier.weight(1f))
+                            }
+                        }
+                        Spacer(Modifier.height(8.dp))
+                    }
+                    Spacer(Modifier.height(8.dp))
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("取消") }
+        }
+    )
+}
+
+/** 填名称和余额。渠道单独显示，点一下能换。 */
 @Composable
 private fun AccountEditDialog(
     initial: AccountEntity?,
+    channel: AccountChannel,
     existingNames: List<String>,
+    onChangeChannel: () -> Unit,
     onDismiss: () -> Unit,
     onSave: (AccountEntity) -> Unit,
     onDelete: (() -> Unit)?
 ) {
     val isNew = initial == null
-    var name by remember { mutableStateOf(initial?.name ?: "") }
-    var channel by remember { mutableStateOf(initial?.type ?: "wechat") }
-    var balanceText by remember { mutableStateOf(MoneyUtils.formatPlain(initial?.balance ?: 0L)) }
-    var nameTouched by remember { mutableStateOf(!isNew) }
+    var name by remember(initial, channel) {
+        mutableStateOf(
+            initial?.name ?: AccountChannels.nextName(
+                channel.key,
+                existingNames
+            )
+        )
+    }
+    var balanceText by remember(initial) {
+        mutableStateOf(MoneyUtils.formatPlain(initial?.balance ?: 0L))
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (isNew) "新建账户" else "编辑账户") },
         text = {
-            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                Text("渠道", style = MaterialTheme.typography.labelLarge)
-                Spacer(Modifier.height(8.dp))
-                AccountChannels.all.chunked(3).forEach { rowChannels ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        rowChannels.forEach { option ->
-                            val selected = option.key == channel
-                            Surface(
-                                shape = RoundedCornerShape(16.dp),
-                                color = if (selected) MaterialTheme.colorScheme.secondaryContainer
-                                else MaterialTheme.colorScheme.surfaceContainerHigh,
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .clickable {
-                                        channel = option.key
-                                        // 用户没手动改过名字时，名字跟着渠道走
-                                        if (!nameTouched) {
-                                            name = AccountChannels.nextName(
-                                                option.key,
-                                                existingNames.filter { it != initial?.name }
-                                            )
-                                        }
-                                    }
-                            ) {
-                                Column(
-                                    modifier = Modifier.padding(vertical = 8.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    ChannelGlyph(channel = option.key, size = 28.dp)
-                                    Spacer(Modifier.height(4.dp))
-                                    Text(
-                                        option.label,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = if (selected) MaterialTheme.colorScheme.onSecondaryContainer
-                                        else MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
-                        }
-                        repeat(3 - rowChannels.size) {
-                            Box(modifier = Modifier.weight(1f))
-                        }
+            Column {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .clickable(onClick = onChangeChannel)
+                        .padding(horizontal = 4.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    ChannelGlyph(channel = channel.key, size = 44.dp)
+                    Spacer(Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(channel.label, style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            "点击更换渠道",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
-                    Spacer(Modifier.height(8.dp))
+                    SymbolText(
+                        "chevron_right",
+                        size = 20.dp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
-
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(14.dp))
                 OutlinedTextField(
                     value = name,
-                    onValueChange = {
-                        name = it
-                        nameTouched = true
-                    },
+                    onValueChange = { name = it },
                     label = { Text("名称") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
@@ -372,13 +470,11 @@ private fun AccountEditDialog(
         confirmButton = {
             Button(onClick = {
                 val balance = balanceText.toDoubleOrNull()?.let { Math.round(it * 100) } ?: 0L
-                val finalName = name.trim().ifBlank {
-                    AccountChannels.nextName(channel, existingNames.filter { it != initial?.name })
-                }
+                val finalName = name.trim().ifBlank { channel.label }
                 onSave(
-                    (initial ?: AccountEntity(name = finalName, type = channel)).copy(
+                    (initial ?: AccountEntity(name = finalName, type = channel.key)).copy(
                         name = finalName,
-                        type = channel,
+                        type = channel.key,
                         balance = balance
                     )
                 )

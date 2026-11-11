@@ -14,59 +14,67 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.cyhkbl.within.R
-
-private data class ChannelSkin(
-    val brand: Color,
-    val iconRes: Int? = null,
-    val symbol: String? = null
-)
+import io.github.cyhkbl.within.data.AccountChannels
 
 /**
- * 账户渠道图标。
- *
- * 微信、支付宝和几家银行用的是 Arcticons 提供的官方 logo 轮廓（CC BY-SA 4.0，
- * 见 NOTICE），单色描边，按品牌色上色，容器是同一品牌的低透明底。
- * 交通银行没有现成 logo，退回 Material Symbols 的通用银行图标。
+ * 账户渠道图标：实心品牌色圆 + 白色图形，和钱迹、各家 App 的图标是同一个套路。
  */
 @Composable
 fun ChannelGlyph(channel: String?, size: Dp = 44.dp) {
-    val skin = channelSkin(channel)
+    val spec = AccountChannels.byKey(channel)
+    val brand = Color(spec?.brand ?: 0xFF7A4FCF)
+    val drawable = drawableFor(channel)
+    val symbol = symbolFor(channel)
+
     Box(
         modifier = Modifier
             .size(size)
             .clip(CircleShape)
-            .background(skin.brand.copy(alpha = 0.16f)),
+            .background(brand),
         contentAlignment = Alignment.Center
     ) {
-        val res = skin.iconRes
-        if (res != null) {
-            // 图标本身已经烤进品牌色，这里不能再 tint，否则会被主题色盖掉
+        if (drawable != null) {
             Icon(
-                painter = painterResource(res),
+                painter = painterResource(drawable),
                 contentDescription = null,
-                tint = Color.Unspecified,
-                modifier = Modifier.size(size * 0.62f)
+                tint = Color.White,
+                modifier = Modifier.size(size * 0.58f)
             )
         } else {
             SymbolText(
-                name = skin.symbol ?: "account_balance",
-                size = size * 0.52f,
-                color = skin.brand
+                name = symbol,
+                size = size * 0.5f,
+                color = Color.White
             )
         }
     }
 }
 
-private fun channelSkin(channel: String?): ChannelSkin = when (channel) {
-    "wechat" -> ChannelSkin(Color(0xFF07C160), R.drawable.ic_channel_wechat)
-    "alipay" -> ChannelSkin(Color(0xFF1677FF), R.drawable.ic_channel_alipay)
-    "icbc" -> ChannelSkin(Color(0xFFC7000B), R.drawable.ic_channel_icbc)
-    "boc" -> ChannelSkin(Color(0xFFA6093D), R.drawable.ic_channel_boc)
-    "cmb" -> ChannelSkin(Color(0xFFD3001D), R.drawable.ic_channel_cmb)
-    "ccb" -> ChannelSkin(Color(0xFF0055A5), R.drawable.ic_channel_ccb)
-    "abc" -> ChannelSkin(Color(0xFF009B4C), R.drawable.ic_channel_abc)
-    "bocom" -> ChannelSkin(Color(0xFF005BAC), symbol = "account_balance")
-    "cash" -> ChannelSkin(Color(0xFF00875F), R.drawable.ic_channel_cash)
-    "credit" -> ChannelSkin(Color(0xFF7A4FCF), R.drawable.ic_channel_credit)
-    else -> ChannelSkin(Color(0xFF5C6470), R.drawable.ic_channel_other)
+/** 有官方 logo 轮廓的渠道。 */
+private fun drawableFor(channel: String?): Int? = when (channel) {
+    "wechat" -> R.drawable.ic_channel_wechat
+    "alipay" -> R.drawable.ic_channel_alipay
+    "icbc" -> R.drawable.ic_channel_icbc
+    "boc" -> R.drawable.ic_channel_boc
+    "cmb" -> R.drawable.ic_channel_cmb
+    "ccb" -> R.drawable.ic_channel_ccb
+    "abc" -> R.drawable.ic_channel_abc
+    "cash" -> R.drawable.ic_channel_cash
+    "credit", "huabei", "jiebei", "baitiao" -> R.drawable.ic_channel_credit
+    "other" -> R.drawable.ic_channel_other
+    else -> null
+}
+
+/** 没有 logo 的渠道用 Material Symbols 近似。 */
+private fun symbolFor(channel: String?): String = when (channel) {
+    "wechat_change" -> "savings"
+    "yuebao", "yulibao" -> "savings"
+    "bank" -> "credit_card"
+    "bocom" -> "account_balance"
+    "qq" -> "chat"
+    "phone" -> "smartphone"
+    "utility" -> "bolt"
+    "meal_card" -> "restaurant"
+    "deposit" -> "savings"
+    else -> "account_balance_wallet"
 }
