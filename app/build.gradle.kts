@@ -12,8 +12,8 @@ android {
         applicationId = "io.github.cyhkbl.within"
         minSdk = 26
         targetSdk = 37
-        versionCode = 16
-        versionName = "1.6.1"
+        versionCode = 17
+        versionName = "1.6.2"
         vectorDrawables { useSupportLibrary = true }
     }
 
@@ -31,6 +31,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     packaging {
