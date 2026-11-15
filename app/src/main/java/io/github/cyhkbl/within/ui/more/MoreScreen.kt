@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
+import io.github.cyhkbl.within.BuildConfig
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
@@ -48,8 +49,6 @@ private data class MoreItem(val icon: String, @StringRes val title: Int, @String
 private val items = listOf(
     MoreItem("notifications_active", R.string.more_00, R.string.more_01),
     MoreItem("label", R.string.more_02, R.string.more_03),
-    MoreItem("savings", R.string.more_04, R.string.more_05),
-    MoreItem("event_repeat", R.string.more_06, R.string.more_07),
     MoreItem("file_upload", R.string.more_08, R.string.more_09),
     MoreItem("file_download", R.string.more_10, R.string.more_11),
     MoreItem("backup", R.string.more_12, R.string.more_13),
@@ -150,25 +149,53 @@ fun MoreScreen(repo: LedgerRepository) {
     if (showAbout) {
         AlertDialog(
             onDismissRequest = { showAbout = false },
-            title = { Text(stringResource(R.string.more_27)) },
+            title = { Text("关于") },
             text = {
                 Column {
-                    Text(stringResource(R.string.more_28), style = MaterialTheme.typography.titleMedium)
-                    Spacer(Modifier.height(6.dp))
                     Text(
-                        "Material 3 Expressive · Jetpack Compose 1.12 · AGP 9.5.1",
+                        "量入为出",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        "版本 %s（%d）".format(BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(Modifier.height(14.dp))
+                    Text(
+                        "一个不联网的记账本。数据全部存在本机，没有账号、没有云同步、没有广告。自动记账读的是系统支付通知和支付结果页，内容不会离开这台设备。",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Spacer(Modifier.height(10.dp))
+
+                    Spacer(Modifier.height(16.dp))
+                    Text("技术栈", style = MaterialTheme.typography.labelLarge)
+                    Spacer(Modifier.height(4.dp))
                     Text(
-                        stringResource(R.string.more_29),
-                        style = MaterialTheme.typography.bodySmall
+                        "Material 3 Expressive · Jetpack Compose · Room · Kotlin",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(Modifier.height(16.dp))
+                    Text("源代码", style = MaterialTheme.typography.labelLarge)
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        "github.com/cyhkbl/Within",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        "Apache License 2.0 · 账户图标来自 Simple Icons 与 payment-webfont-cn",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             },
             confirmButton = {
-                TextButton(onClick = { showAbout = false }) { Text(stringResource(R.string.more_30)) }
+                TextButton(onClick = { showAbout = false }) { Text("关闭") }
             }
         )
     }
