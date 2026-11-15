@@ -10,7 +10,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import io.github.cyhkbl.within.onboarding.OnboardingPrefs
+import io.github.cyhkbl.within.onboarding.OnboardingScreen
 import io.github.cyhkbl.within.ui.LedgerRoot
 import io.github.cyhkbl.within.ui.theme.LedgerTheme
 import io.github.cyhkbl.within.ui.theme.ThemePrefs
@@ -34,7 +39,12 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    LedgerRoot(repo)
+                    var onboarded by remember { mutableStateOf(OnboardingPrefs.isDone(this@MainActivity)) }
+                    if (onboarded) {
+                        LedgerRoot(repo)
+                    } else {
+                        OnboardingScreen(onFinish = { onboarded = true })
+                    }
                 }
             }
         }

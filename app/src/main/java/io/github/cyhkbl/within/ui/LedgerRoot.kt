@@ -10,6 +10,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -208,21 +211,39 @@ private fun MainShell(
                 windowInsets = WindowInsets(0)
             ) {
                 destinations.forEach { dest ->
+                    val selected = currentRoute == dest.route
                     NavigationBarItem(
-                        selected = currentRoute == dest.route,
+                        selected = selected,
                         onClick = { onNavigate(dest.route) },
                         icon = {
+                            val scale by animateFloatAsState(
+                                targetValue = if (selected) 1f else 0.92f,
+                                animationSpec = spring(dampingRatio = 0.55f, stiffness = 700f),
+                                label = "navIconScale"
+                            )
                             SymbolText(
                                 name = dest.icon,
-                                size = 24.dp,
-                                color = if (currentRoute == dest.route)
+                                size = (26 * scale).dp,
+                                color = if (selected)
                                     MaterialTheme.colorScheme.onSecondaryContainer
                                 else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         },
-                        label = { Text(stringResource(dest.label)) },
+                        label = {
+                            Text(
+                                stringResource(dest.label),
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = if (selected) androidx.compose.ui.text.font.FontWeight.SemiBold
+                                else androidx.compose.ui.text.font.FontWeight.Normal
+                            )
+                        },
+                        alwaysShowLabel = true,
                         colors = NavigationBarItemDefaults.colors(
-                            indicatorColor = MaterialTheme.colorScheme.secondaryContainer
+                            indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
+                            selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            selectedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     )
                 }
