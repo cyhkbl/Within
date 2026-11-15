@@ -1,10 +1,12 @@
 package io.github.cyhkbl.within.ui.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -17,46 +19,61 @@ import io.github.cyhkbl.within.R
 import io.github.cyhkbl.within.data.AccountChannels
 
 /**
- * 账户渠道图标：实心品牌色圆 + 白色图形。
+ * 账户渠道图标。
  *
- * 微信和支付宝用的是官方 logo 的精确矢量（Simple Icons，CC0），
- * 其余渠道没有公开的矢量资源，用 Material Symbols 画出同类意象。
+ * 微信、支付宝用 Simple Icons 的官方矢量，单色，靠 tint 染白；
+ * 银行用各家官方 logo 的位图，本身是彩色的，所以不能用 Icon（会被 tint 染色），
+ * 底也必须用中性色——品牌色底会把它糊掉。
  */
 @Composable
 fun ChannelGlyph(channel: String?, size: Dp = 44.dp) {
     val spec = AccountChannels.byKey(channel)
     val brand = Color(spec?.brand ?: 0xFF7A4FCF)
-    val drawable = drawableFor(channel)
+    val logoRes: Int? = drawableFor(channel)
+    val isBankLogo = logoRes != null && bitmapIcons.contains(logoRes)
+
+    val container = if (isBankLogo) {
+        MaterialTheme.colorScheme.surfaceContainerHighest
+    } else {
+        brand
+    }
 
     Box(
         modifier = Modifier
             .size(size)
             .clip(CircleShape)
-            .background(brand),
+            .background(container),
         contentAlignment = Alignment.Center
     ) {
-        if (drawable != null) {
-            val isBitmap = drawable in bitmapIcons
-            Icon(
-                painter = painterResource(drawable),
-                contentDescription = null,
-                tint = if (isBitmap) Color.Unspecified else Color.White,
-                modifier = Modifier
-                    .size(if (isBitmap) size * 0.72f else size * 0.58f)
-                    // 位图 logo 是「标志 + 文字」的横排，裁成圆形只留标志
-                    .then(if (isBitmap) Modifier.clip(CircleShape) else Modifier)
-            )
-        } else {
-            SymbolText(
-                name = symbolFor(channel),
-                size = size * 0.5f,
-                color = Color.White
-            )
+        when {
+            logoRes == null -> {
+                SymbolText(
+                    name = symbolFor(channel),
+                    size = size * 0.5f,
+                    color = Color.White
+                )
+            }
+            isBankLogo -> {
+                // Image 没有 tint 参数，位图保持原始配色
+                Image(
+                    painter = painterResource(logoRes),
+                    contentDescription = null,
+                    modifier = Modifier.size(size * 0.82f)
+                )
+            }
+            else -> {
+                Icon(
+                    painter = painterResource(logoRes),
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(size * 0.58f)
+                )
+            }
         }
     }
 }
 
-/** 用位图渲染的银行 logo（官方横排标志，显示时裁圆只留标志）。 */
+/** 银行官方 logo 位图。 */
 private val bitmapIcons: Set<Int> = setOf(
     R.drawable.ic_bank_icbc, R.drawable.ic_bank_boc, R.drawable.ic_bank_cmb,
     R.drawable.ic_bank_ccb, R.drawable.ic_bank_abc, R.drawable.ic_bank_bocom,
@@ -64,7 +81,6 @@ private val bitmapIcons: Set<Int> = setOf(
     R.drawable.ic_bank_citic, R.drawable.ic_bank_unionpay
 )
 
-/** 有精确官方 logo 的渠道。 */
 private fun drawableFor(channel: String?): Int? = when (channel) {
     "icbc" -> R.drawable.ic_bank_icbc
     "boc" -> R.drawable.ic_bank_boc

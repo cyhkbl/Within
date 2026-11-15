@@ -114,11 +114,10 @@ fun OnboardingScreen(onFinish: () -> Unit) {
             PermissionItem(
                 key = "autostart",
                 icon = "rocket_launch",
-                title = "自启动（可选）",
-                description = "一加、OPPO 这类系统会限制后台自启，去系统设置里允许本应用自启动会更稳。",
-                check = { AutoRecordPermissions.allGranted(it) },
-                open = { AutoRecordPermissions.openAutoStartSettings(it) },
-                optional = true
+                title = "允许自启动",
+                description = "一加、OPPO 默认禁止应用自启动。不开的话，重启手机或闲置一段时间后本应用就再也不会被唤起，记账也就断了。",
+                check = { AutoRecordPermissions.autoStartLikelyAllowed(it) },
+                open = { AutoRecordPermissions.openAutoStartSettings(it) }
             )
         )
     }
@@ -239,6 +238,31 @@ fun OnboardingScreen(onFinish: () -> Unit) {
                     if (allDone) "开始使用" else "稍后再说",
                     style = MaterialTheme.typography.titleMedium
                 )
+            }
+            if (allDone) {
+                Spacer(Modifier.height(4.dp))
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = MaterialTheme.shapes.large,
+                    color = MaterialTheme.colorScheme.tertiaryContainer
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        SymbolText(
+                            "push_pin",
+                            size = 18.dp,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer
+                        )
+                        Spacer(Modifier.width(10.dp))
+                        Text(
+                            "最后一件事：打开最近任务，把「量入为出」的卡片往下拉（或长按）锁定住。这样系统清理后台时不会把它一起划掉。",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer
+                        )
+                    }
+                }
             }
             Text(
                 "没授的权限可以随时在「我的 → 自动记账」里补。",
