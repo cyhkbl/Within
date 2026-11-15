@@ -61,9 +61,17 @@ class LedgerRepository(private val db: LedgerDatabase) {
         val accounts = db.accountDao().listAll()
         var changed = 0
         accounts.forEach { acc ->
-            if (AccountChannels.byKey(acc.type) == null) {
-                val channel = AccountChannels.inferFromName(acc.name, acc.type)
-                db.accountDao().update(acc.copy(type = channel))
+            val known = AccountChannels.byKey(acc.type)
+            val inferred = AccountChannels.inferFromName(acc.name, acc.type)
+            // 三种情况要改：
+            // 1. 老数据是 CASH/WALLET 这类已废弃的类型
+            // 2. 停在通用「银行卡」，但账户名能认出是哪家银行
+            // 3. 停在「其它」，但账户名能认出具体渠道
+            val upgradeable = known == null ||
+                (acc.type == "bank" && inferred != "bank") ||
+                (acc.type == "other" && inferred != "other")
+            if (upgradeable && inferred != acc.type) {
+                db.accountDao().update(acc.copy(type = inferred))
                 changed++
             }
         }
