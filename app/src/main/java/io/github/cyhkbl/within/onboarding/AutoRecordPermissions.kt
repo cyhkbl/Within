@@ -69,6 +69,13 @@ object AutoRecordPermissions {
     fun notificationsGranted(context: Context): Boolean =
         NotificationManagerCompat.from(context).areNotificationsEnabled()
 
+    /**
+     * 自启动没有公开的查询接口，没法真的检测。
+     * 退一步：能读到我们的电池白名单就认为用户已经在系统里动过手了。
+     */
+    fun autoStartLikelyAllowed(context: Context): Boolean =
+        batteryOptimizationIgnored(context)
+
     /** 四项是否都齐了。 */
     fun allGranted(context: Context): Boolean =
         accessibilityEnabled(context) &&
