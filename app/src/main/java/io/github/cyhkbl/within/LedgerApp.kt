@@ -1,6 +1,8 @@
 package io.github.cyhkbl.within
 
 import android.app.Application
+import io.github.cyhkbl.within.autolog.AutoRecordHealth
+import io.github.cyhkbl.within.autolog.KeepAliveService
 import io.github.cyhkbl.within.data.LedgerRepository
 import io.github.cyhkbl.within.data.db.LedgerDatabase
 import io.github.cyhkbl.within.ui.theme.ThemePrefs
@@ -21,6 +23,8 @@ class LedgerApp : Application() {
         val db = LedgerDatabase.get(this)
         repo = LedgerRepository(db)
         AutoRecordGate.attach(this)
+        KeepAliveService.start(this)
+        AutoRecordHealth.notifyIfBroken(this)
         ThemePrefs.init(this)
         appScope.launch {
             repo.seedIfNeeded()
