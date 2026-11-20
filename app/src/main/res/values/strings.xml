@@ -217,6 +217,11 @@
     <string name="more_37">动态取色</string>
     <string name="more_38">用系统壁纸的颜色生成主题色</string>
     <string name="more_39">完成</string>
+    <string name="more_delete_all">删除全部账单</string>
+    <string name="more_delete_all_confirm">这会清空所有账单并把账户余额归零。删完之后可以重新从钱迹导入。确定吗？</string>
+    <string name="more_delete_all_done">已删除</string>
+    <string name="more_delete_all_cancel">取消</string>
+    <string name="more_delete_all_action">删除</string>
     <string name="stats_00">统计</string>
     <string name="stats_01">本月总支出</string>
     <string name="stats_02">分类排行</string>

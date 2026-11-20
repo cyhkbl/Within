@@ -24,6 +24,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -52,6 +54,7 @@ private val items = listOf(
     MoreItem("file_upload", R.string.more_08, R.string.more_09),
     MoreItem("file_download", R.string.more_10, R.string.more_11),
     MoreItem("backup", R.string.more_12, R.string.more_13),
+    MoreItem("delete_sweep", R.string.more_delete_all, R.string.more_delete_all),
     MoreItem("palette", R.string.more_14, R.string.more_15),
     MoreItem("info", R.string.more_16, R.string.more_17)
 )
@@ -62,6 +65,8 @@ fun MoreScreen(repo: LedgerRepository) {
     var showAppearance by remember { mutableStateOf(false) }
     var showAbout by remember { mutableStateOf(false) }
     var showComingSoon by remember { mutableStateOf<Int?>(null) }
+    var showDeleteAll by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -99,6 +104,7 @@ fun MoreScreen(repo: LedgerRepository) {
                                         R.string.more_12 -> context.startActivity(
                                             android.content.Intent(context, BackupRestoreActivity::class.java)
                                         )
+                                        R.string.more_delete_all -> showDeleteAll = true
                                         R.string.more_14 -> showAppearance = true
                                         R.string.more_16 -> showAbout = true
                                         else -> showComingSoon = item.title
@@ -132,6 +138,30 @@ fun MoreScreen(repo: LedgerRepository) {
         }
 
         item { Spacer(Modifier.height(100.dp)) }
+    }
+
+    if (showDeleteAll) {
+        AlertDialog(
+            onDismissRequest = { showDeleteAll = false },
+            title = { Text(stringResource(R.string.more_delete_all)) },
+            text = { Text(stringResource(R.string.more_delete_all_confirm)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDeleteAll = false
+                    scope.launch { repo.clearTransactionsAndBalances() }
+                }) {
+                    Text(
+                        stringResource(R.string.more_delete_all_action),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteAll = false }) {
+                    Text(stringResource(R.string.more_delete_all_cancel))
+                }
+            }
+        )
     }
 
     if (showAppearance) {
