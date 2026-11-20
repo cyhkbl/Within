@@ -146,28 +146,6 @@ private fun AutoLogSettingsScreen(
         }
 
         item {
-            Surface(
-                shape = MaterialTheme.shapes.extraLarge,
-                color = MaterialTheme.colorScheme.primaryContainer,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(modifier = Modifier.padding(20.dp)) {
-                    Text(
-                        stringResource(R.string.autolog_05),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        stringResource(R.string.autolog_06),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f)
-                    )
-                }
-            }
-        }
-
-        item {
             Text(
                 stringResource(R.string.autolog_07),
                 style = MaterialTheme.typography.titleMedium,
@@ -223,44 +201,6 @@ private fun AutoLogSettingsScreen(
                     }
                 }
             }
-        }
-
-        item {
-            Surface(
-                shape = MaterialTheme.shapes.extraLarge,
-                color = MaterialTheme.colorScheme.surfaceContainerLow,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(modifier = Modifier.padding(18.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        SymbolText("science", size = 22.dp, color = MaterialTheme.colorScheme.primary)
-                        Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.autolog_23), style = MaterialTheme.typography.titleMedium)
-                    }
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        stringResource(R.string.autolog_24),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(Modifier.height(12.dp))
-                    Button(
-                        onClick = onTest,
-                        shape = RoundedCornerShape(50),
-                        colors = ButtonDefaults.buttonColors()
-                    ) {
-                        Text(stringResource(R.string.autolog_25))
-                    }
-                }
-            }
-        }
-
-        item {
-            Text(
-                stringResource(R.string.autolog_26),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
         }
 
         item { Spacer(Modifier.height(60.dp)) }

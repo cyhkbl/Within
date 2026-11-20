@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -75,8 +76,17 @@ fun StatsScreen(repo: LedgerRepository) {
     val rawTxs by repo.transactions(range.first, range.second).collectAsState(initial = emptyList())
     val categories by repo.allCategories().collectAsState(initial = emptyList())
 
-    // 余额调整不是真实消费，统计里不参与
-    val txs = rawTxs.filter { it.source != "ADJUST" }
+    // 余额调整、平账、退款都不算消费，统计里一律不参与
+    val refundCategoryIds = categories.filter { it.name == "退款" }.map { it.id }.toSet()
+    var refundedOriginIds by remember { mutableStateOf(emptySet<Long>()) }
+    LaunchedEffect(Unit) { refundedOriginIds = repo.refundedOriginIds().toSet() }
+    val txs = rawTxs.filter {
+        it.source != "ADJUST" &&
+            it.source != "REFUND" &&
+            it.refundedFromId == null &&
+            it.categoryId !in refundCategoryIds &&
+            it.id !in refundedOriginIds
+    }
     val catMap = categories.associateBy { it.id }
     val expenses = txs.filter { it.kind == "EXPENSE" && !it.excludeFromStats }
     val total = expenses.sumOf { it.amount }

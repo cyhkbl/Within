@@ -224,11 +224,6 @@ fun AssetsScreen(repo: LedgerRepository) {
                         style = MaterialTheme.typography.displaySmall,
                         fontWeight = FontWeight.SemiBold
                     )
-                    Text(
-                        "共 ${accounts.size} 个账户 · 点一下就能改余额",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
                 }
             }
 
