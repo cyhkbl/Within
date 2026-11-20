@@ -73,14 +73,11 @@ fun LedgerRoot(repo: LedgerRepository) {
     NavHost(
         navController = nav,
         startDestination = "home",
-        enterTransition = {
-            slideInVertically(animationSpec = tween(260)) { it / 12 } + fadeIn(tween(220))
-        },
-        exitTransition = { fadeOut(tween(160)) },
-        popEnterTransition = { fadeIn(tween(200)) },
-        popExitTransition = {
-            slideOutVertically(animationSpec = tween(240)) { it / 12 } + fadeOut(tween(180))
-        }
+        // 底部四个 tab 是平级的，来回切换用同一套淡入淡出，不区分前进/返回
+        enterTransition = { fadeIn(tween(180)) },
+        exitTransition = { fadeOut(tween(140)) },
+        popEnterTransition = { fadeIn(tween(180)) },
+        popExitTransition = { fadeOut(tween(140)) }
     ) {
         composable("home") {
             val vm: HomeViewModel = viewModel(factory = factory)
