@@ -76,14 +76,26 @@ import java.time.LocalDate
 
 class ImportExportActivity : ComponentActivity() {
 
+    companion object {
+        const val EXTRA_MODE = "io_mode"
+        const val MODE_IMPORT = "import"
+        const val MODE_EXPORT = "export"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val repo = (application as LedgerApp).repo
+        val mode = intent.getStringExtra(EXTRA_MODE) ?: MODE_IMPORT
         setContent {
             LedgerTheme {
                 Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    ImportExportScreen(context = this, repo = repo, onBack = { finish() })
+                    ImportExportScreen(
+                        context = this,
+                        repo = repo,
+                        mode = mode,
+                        onBack = { finish() }
+                    )
                 }
             }
         }
@@ -101,8 +113,11 @@ private sealed interface Stage {
 private fun ImportExportScreen(
     context: Context,
     repo: LedgerRepository,
+    mode: String,
     onBack: () -> Unit
 ) {
+    val showImport = mode == ImportExportActivity.MODE_IMPORT
+    val showExport = mode == ImportExportActivity.MODE_EXPORT
     val scope = rememberCoroutineScope()
     val runner = remember { ImportRunner(repo) }
     var stage by remember { mutableStateOf<Stage>(Stage.Idle) }
@@ -202,222 +217,226 @@ private fun ImportExportScreen(
             }
         }
 
-        // ── 导入 ──
-        item {
-            Surface(
-                shape = MaterialTheme.shapes.extraLarge,
-                color = MaterialTheme.colorScheme.surfaceContainerLow,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(modifier = Modifier.padding(20.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        CategoryGlyph(icon = "file_upload", size = 42.dp)
-                        Spacer(Modifier.width(12.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("导入账单", style = MaterialTheme.typography.titleMedium)
-                            Text(
-                                "XLSX / CSV，按表头自动识别",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                    Spacer(Modifier.height(14.dp))
-                    Button(
-                        onClick = {
-                            importLauncher.launch(
-                                arrayOf(
-                                    "text/csv",
-                                    "text/comma-separated-values",
-                                    "text/plain",
-                                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                                    "application/vnd.ms-excel",
-                                    "application/octet-stream"
-                                )
-                            )
-                        },
-                        enabled = stage !is Stage.Working,
-                        shape = RoundedCornerShape(50)
-                    ) { Text("选择文件") }
-                }
-            }
-        }
-
-        when (val s = stage) {
-            is Stage.Working -> item {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-                    Spacer(Modifier.width(10.dp))
-                    Text("正在解析…", style = MaterialTheme.typography.bodyMedium)
-                }
-            }
-
-            is Stage.Preview -> {
-                item { PreviewSummaryCard(s) }
-                item {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Button(
-                            onClick = {
-                                stage = Stage.Working
-                                progress = 0f
-                                scope.launch {
-                                    val summary = withContext(Dispatchers.IO) {
-                                        runner.run(s.outcome) { done, total ->
-                                            progress = if (total <= 0) 1f else done.toFloat() / total
-                                        }
-                                    }
-                                    stage = Stage.Done(summary)
-                                }
-                            },
-                            shape = RoundedCornerShape(50)
-                        ) { Text("确认导入") }
-                        Spacer(Modifier.width(10.dp))
-                        OutlinedButton(
-                            onClick = { stage = Stage.Idle },
-                            shape = RoundedCornerShape(50)
-                        ) { Text("取消") }
-                    }
-                }
-
-                if (s.preview.issues.isNotEmpty()) {
-                    item {
-                        Text(
-                            "解析失败的行",
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
-                    itemsIndexed(s.preview.issues) { _, issue ->
-                        Surface(
-                            shape = MaterialTheme.shapes.medium,
-                            color = MaterialTheme.colorScheme.errorContainer,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Column(modifier = Modifier.padding(12.dp)) {
-                                Text(
-                                    "第 ${issue.lineNo} 行 · ${issue.reason}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onErrorContainer
-                                )
-                            }
-                        }
-                    }
-                }
-
-                item {
-                    Text(
-                        "将导入的账单（${s.preview.newRows.size} 条）",
-                        style = MaterialTheme.typography.titleSmall
-                    )
-                }
-                items(s.preview.newRows.take(60)) { row -> ParsedRowItem(row) }
-                if (s.preview.newRows.size > 60) {
-                    item {
-                        Text(
-                            "…… 还有 ${s.preview.newRows.size - 60} 条，确认后会全部导入",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-
-            is Stage.Done -> {
-                item { ImportResultCard(s.summary) }
-                item {
-                    OutlinedButton(
-                        onClick = {
-                            val summary = s.summary
-                            stage = Stage.Working
-                            scope.launch {
-                                val removed = withContext(Dispatchers.IO) { runner.undo(summary.batchId) }
-                                stage = Stage.Idle
-                                message = "已撤销这次导入，删除 $removed 条账单"
-                            }
-                        },
-                        shape = RoundedCornerShape(50),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = MaterialTheme.colorScheme.error
-                        )
-                    ) { Text("撤销这次导入") }
-                }
-            }
-
-            Stage.Idle -> Unit
-        }
-
-        if (message.isNotBlank()) {
+        if (showImport) {
+            // ── 导入 ──
             item {
                 Surface(
-                    shape = MaterialTheme.shapes.medium,
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    shape = MaterialTheme.shapes.extraLarge,
+                    color = MaterialTheme.colorScheme.surfaceContainerLow,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(
-                        message,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(14.dp)
-                    )
+                    Column(modifier = Modifier.padding(20.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            CategoryGlyph(icon = "file_upload", size = 42.dp)
+                            Spacer(Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text("导入账单", style = MaterialTheme.typography.titleMedium)
+                                Text(
+                                    "XLSX / CSV，按表头自动识别",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                        Spacer(Modifier.height(14.dp))
+                        Button(
+                            onClick = {
+                                importLauncher.launch(
+                                    arrayOf(
+                                        "text/csv",
+                                        "text/comma-separated-values",
+                                        "text/plain",
+                                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                        "application/vnd.ms-excel",
+                                        "application/octet-stream"
+                                    )
+                                )
+                            },
+                            enabled = stage !is Stage.Working,
+                            shape = RoundedCornerShape(50)
+                        ) { Text("选择文件") }
+                    }
                 }
             }
-        }
-
-        // ── 导出 ──
-        item {
-            Surface(
-                shape = MaterialTheme.shapes.extraLarge,
-                color = MaterialTheme.colorScheme.surfaceContainerLow,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(modifier = Modifier.padding(20.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        CategoryGlyph(icon = "file_download", size = 42.dp)
-                        Spacer(Modifier.width(12.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("导出账单", style = MaterialTheme.typography.titleMedium)
+    
+            when (val s = stage) {
+                is Stage.Working -> item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                        Spacer(Modifier.width(10.dp))
+                        Text("正在解析…", style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+    
+                is Stage.Preview -> {
+                    item { PreviewSummaryCard(s) }
+                    item {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Button(
+                                onClick = {
+                                    stage = Stage.Working
+                                    progress = 0f
+                                    scope.launch {
+                                        val summary = withContext(Dispatchers.IO) {
+                                            runner.run(s.outcome) { done, total ->
+                                                progress = if (total <= 0) 1f else done.toFloat() / total
+                                            }
+                                        }
+                                        stage = Stage.Done(summary)
+                                    }
+                                },
+                                shape = RoundedCornerShape(50)
+                            ) { Text("确认导入") }
+                            Spacer(Modifier.width(10.dp))
+                            OutlinedButton(
+                                onClick = { stage = Stage.Idle },
+                                shape = RoundedCornerShape(50)
+                            ) { Text("取消") }
+                        }
+                    }
+    
+                    if (s.preview.issues.isNotEmpty()) {
+                        item {
                             Text(
-                                "保存 CSV 到「下载」目录",
+                                "解析失败的行",
+                                style = MaterialTheme.typography.titleSmall,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                        itemsIndexed(s.preview.issues) { _, issue ->
+                            Surface(
+                                shape = MaterialTheme.shapes.medium,
+                                color = MaterialTheme.colorScheme.errorContainer,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Column(modifier = Modifier.padding(12.dp)) {
+                                    Text(
+                                        "第 ${issue.lineNo} 行 · ${issue.reason}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onErrorContainer
+                                    )
+                                }
+                            }
+                        }
+                    }
+    
+                    item {
+                        Text(
+                            "将导入的账单（${s.preview.newRows.size} 条）",
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                    }
+                    items(s.preview.newRows.take(60)) { row -> ParsedRowItem(row) }
+                    if (s.preview.newRows.size > 60) {
+                        item {
+                            Text(
+                                "…… 还有 ${s.preview.newRows.size - 60} 条，确认后会全部导入",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
-                    Spacer(Modifier.height(14.dp))
-                    Button(
-                        onClick = {
-                            exporting = true
-                            scope.launch {
-                                try {
-                                    val result = withContext(Dispatchers.IO) {
-                                        val txs = repo.recentTransactionsOnce(100_000)
-                                        val cats = repo.allCategoriesOnce()
-                                        val accounts = repo.accountsAllOnce()
-                                        val csv = LedgerCsv.buildCsv(
-                                            txs,
-                                            cats.associate { it.id to it.name },
-                                            accounts.associate { it.id to it.name }
-                                        )
-                                        val requested = exportPrefix + LocalDate.now() + ".csv"
-                                        val actual = writeCsvToDownloads(context, requested, csv)
-                                        actual to txs.size
-                                    }
-                                    message = context.getString(
-                                        R.string.io_status_exported, result.second, result.first
-                                    )
-                                } catch (t: Throwable) {
-                                    message = "导出失败：" + (t.message ?: errUnknown)
-                                } finally {
-                                    exporting = false
+                }
+    
+                is Stage.Done -> {
+                    item { ImportResultCard(s.summary) }
+                    item {
+                        OutlinedButton(
+                            onClick = {
+                                val summary = s.summary
+                                stage = Stage.Working
+                                scope.launch {
+                                    val removed = withContext(Dispatchers.IO) { runner.undo(summary.batchId) }
+                                    stage = Stage.Idle
+                                    message = "已撤销这次导入，删除 $removed 条账单"
                                 }
+                            },
+                            shape = RoundedCornerShape(50),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = MaterialTheme.colorScheme.error
+                            )
+                        ) { Text("撤销这次导入") }
+                    }
+                }
+    
+                Stage.Idle -> Unit
+            }
+    
+            if (message.isNotBlank()) {
+                item {
+                    Surface(
+                        shape = MaterialTheme.shapes.medium,
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            message,
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(14.dp)
+                        )
+                    }
+                }
+            }
+        }
+
+        if (showExport) {
+            // ── 导出 ──
+            item {
+                Surface(
+                    shape = MaterialTheme.shapes.extraLarge,
+                    color = MaterialTheme.colorScheme.surfaceContainerLow,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(20.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            CategoryGlyph(icon = "file_download", size = 42.dp)
+                            Spacer(Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text("导出账单", style = MaterialTheme.typography.titleMedium)
+                                Text(
+                                    "保存 CSV 到「下载」目录",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
-                        },
-                        enabled = !exporting,
-                        shape = RoundedCornerShape(50)
-                    ) { Text(if (exporting) "导出中…" else "导出到下载目录") }
+                        }
+                        Spacer(Modifier.height(14.dp))
+                        Button(
+                            onClick = {
+                                exporting = true
+                                scope.launch {
+                                    try {
+                                        val result = withContext(Dispatchers.IO) {
+                                            val txs = repo.recentTransactionsOnce(100_000)
+                                            val cats = repo.allCategoriesOnce()
+                                            val accounts = repo.accountsAllOnce()
+                                            val csv = LedgerCsv.buildCsv(
+                                                txs,
+                                                cats.associate { it.id to it.name },
+                                                accounts.associate { it.id to it.name }
+                                            )
+                                            val requested = exportPrefix + LocalDate.now() + ".csv"
+                                            val actual = writeCsvToDownloads(context, requested, csv)
+                                            actual to txs.size
+                                        }
+                                        message = context.getString(
+                                            R.string.io_status_exported, result.second, result.first
+                                        )
+                                    } catch (t: Throwable) {
+                                        message = "导出失败：" + (t.message ?: errUnknown)
+                                    } finally {
+                                        exporting = false
+                                    }
+                                }
+                            },
+                            enabled = !exporting,
+                            shape = RoundedCornerShape(50)
+                        ) { Text(if (exporting) "导出中…" else "导出到下载目录") }
+                    }
                 }
             }
         }

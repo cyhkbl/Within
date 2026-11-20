@@ -171,14 +171,19 @@ fun HomeScreen(
                 item(key = "empty") { EmptyState() }
             }
             state.groups.forEach { group ->
-                item(key = "day-${group.dayKey}") { DayHeader(group) }
+                item(key = "day-${group.dayKey}") {
+                    Box(Modifier.animateItem()) { DayHeader(group) }
+                }
                 items(group.items, key = { "tx-${it.id}" }) { tx ->
-                    TransactionRow(
-                        tx = tx,
-                        category = state.categories[tx.categoryId],
-                        account = state.accounts[tx.accountId],
-                        onClick = { onTxClick(tx) }
-                    )
+                    // 记账后有新增/删除时，列表项会平滑地让位而不是瞬间跳动
+                    Box(Modifier.animateItem()) {
+                        TransactionRow(
+                            tx = tx,
+                            category = state.categories[tx.categoryId],
+                            account = state.accounts[tx.accountId],
+                            onClick = { onTxClick(tx) }
+                        )
+                    }
                 }
             }
         }

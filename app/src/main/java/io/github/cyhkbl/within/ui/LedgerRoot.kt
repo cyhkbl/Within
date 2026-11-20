@@ -1,6 +1,10 @@
 package io.github.cyhkbl.within.ui
 
 import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -73,11 +77,24 @@ fun LedgerRoot(repo: LedgerRepository) {
     NavHost(
         navController = nav,
         startDestination = "home",
-        // 底部四个 tab 是平级的，来回切换用同一套淡入淡出，不区分前进/返回
-        enterTransition = { fadeIn(tween(180)) },
-        exitTransition = { fadeOut(tween(140)) },
-        popEnterTransition = { fadeIn(tween(180)) },
-        popExitTransition = { fadeOut(tween(140)) }
+        // 底部四个 tab 平级，来回切换同一套「轻微横移 + 淡入」，
+        // 纯淡入淡出时长太短会让人以为没有动画
+        enterTransition = {
+            fadeIn(tween(240, easing = FastOutSlowInEasing)) +
+                slideInHorizontally(tween(300, easing = FastOutSlowInEasing)) { it / 16 }
+        },
+        exitTransition = {
+            fadeOut(tween(180, easing = FastOutLinearInEasing)) +
+                slideOutHorizontally(tween(280, easing = FastOutSlowInEasing)) { -it / 20 }
+        },
+        popEnterTransition = {
+            fadeIn(tween(240, easing = FastOutSlowInEasing)) +
+                slideInHorizontally(tween(300, easing = FastOutSlowInEasing)) { -it / 16 }
+        },
+        popExitTransition = {
+            fadeOut(tween(180, easing = FastOutLinearInEasing)) +
+                slideOutHorizontally(tween(280, easing = FastOutSlowInEasing)) { it / 20 }
+        }
     ) {
         composable("home") {
             val vm: HomeViewModel = viewModel(factory = factory)
