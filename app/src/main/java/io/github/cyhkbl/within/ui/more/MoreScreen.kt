@@ -71,11 +71,6 @@ fun MoreScreen(repo: LedgerRepository) {
         item {
             Column(modifier = Modifier.padding(top = 16.dp, bottom = 4.dp)) {
                 Text(stringResource(R.string.more_18), style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.SemiBold)
-                Text(
-                    stringResource(R.string.more_19),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
             }
         }
 
@@ -114,14 +109,11 @@ fun MoreScreen(repo: LedgerRepository) {
                         ) {
                             CategoryGlyph(icon = item.icon, size = 42.dp)
                             Spacer(Modifier.width(14.dp))
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(stringResource(item.title), style = MaterialTheme.typography.titleMedium)
-                                Text(
-                                    stringResource(item.subtitle),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
+                            Text(
+                                stringResource(item.title),
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.weight(1f)
+                            )
                             SymbolText(
                                 "chevron_right",
                                 size = 20.dp,
@@ -163,22 +155,6 @@ fun MoreScreen(repo: LedgerRepository) {
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
-                    Spacer(Modifier.height(14.dp))
-                    Text(
-                        "一个不联网的记账本。数据全部存在本机，没有账号、没有云同步、没有广告。自动记账读的是系统支付通知和支付结果页，内容不会离开这台设备。",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
-                    Spacer(Modifier.height(16.dp))
-                    Text("技术栈", style = MaterialTheme.typography.labelLarge)
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        "Material 3 Expressive · Jetpack Compose · Room · Kotlin",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
                     Spacer(Modifier.height(16.dp))
                     Text("源代码", style = MaterialTheme.typography.labelLarge)
                     Spacer(Modifier.height(4.dp))
@@ -186,11 +162,6 @@ fun MoreScreen(repo: LedgerRepository) {
                         "github.com/cyhkbl/Within",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.primary
-                    )
-                    Text(
-                        "Apache License 2.0 · 账户图标来自 Simple Icons 与 payment-webfont-cn",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             },

@@ -147,6 +147,9 @@ interface TransactionDao {
     @Query("SELECT * FROM transactions WHERE refundedFromId = :id ORDER BY timestamp ASC")
     suspend fun refundsOf(id: Long): List<TransactionEntity>
 
+    @Query("SELECT DISTINCT refundedFromId FROM transactions WHERE refundedFromId IS NOT NULL")
+    suspend fun refundedOriginIds(): List<Long>
+
     @Query("UPDATE transactions SET excludeFromStats = 1 WHERE refundedFromId IS NOT NULL AND excludeFromStats = 0")
     suspend fun normalizeRefundFlags(): Int
 

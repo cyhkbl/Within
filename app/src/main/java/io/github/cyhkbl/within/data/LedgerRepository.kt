@@ -79,11 +79,10 @@ class LedgerRepository(private val db: LedgerDatabase) {
     }
 
     /**
-     * 把某个账户的余额校准到目标值，差额记一条「余额调整」。
+     * 把某个账户的余额校准到目标值，差额记一条「平账」。
      *
-     * 钱迹里手动改过余额会留下调整记录，但导出的账单文件不含这些记录，
-     * 所以导入之后账户余额会和钱迹对不上。这里让用户按钱迹的数字校准一次，
-     * 调整记录不计入收支统计，只影响账户余额。
+     * 应用内直接改余额是用户主动的对账动作，所以这笔差额算真实收支，
+     * 进账单、进统计。从钱迹导入时若需要对齐余额，走的是另一条不计收支的路径。
      */
     suspend fun adjustAccountBalance(accountId: Long, targetBalance: Long): Boolean {
         val account = accountById(accountId) ?: return false
@@ -94,9 +93,9 @@ class LedgerRepository(private val db: LedgerDatabase) {
                 kind = if (diff > 0) "INCOME" else "EXPENSE",
                 amount = kotlin.math.abs(diff),
                 accountId = accountId,
-                note = "余额调整",
+                note = "平账",
                 timestamp = System.currentTimeMillis(),
-                excludeFromStats = true,
+                excludeFromStats = false,
                 source = "ADJUST"
             )
         )
@@ -108,6 +107,9 @@ class LedgerRepository(private val db: LedgerDatabase) {
     suspend fun refundedSum(id: Long) = db.transactionDao().refundedSum(id)
     suspend fun refundsOf(id: Long) = db.transactionDao().refundsOf(id)
     suspend fun normalizeRefundFlags() = db.transactionDao().normalizeRefundFlags()
+
+    /** 被退款过的原账单 id，这些在统计里要排除掉。 */
+    suspend fun refundedOriginIds(): List<Long> = db.transactionDao().refundedOriginIds()
 
     suspend fun allCategoriesOnce() = db.categoryDao().listAll()
     suspend fun byBatch(batch: String) = db.transactionDao().byBatch(batch)

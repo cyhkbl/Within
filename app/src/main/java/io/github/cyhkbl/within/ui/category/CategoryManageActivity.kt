@@ -139,52 +139,12 @@ private fun CategoryManageScreen(repo: LedgerRepository, onBack: () -> Unit) {
             Spacer(Modifier.height(12.dp))
 
             LazyColumn(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                items(topLevel, key = { it.id }) { cat ->
+                items(list, key = { it.id }) { cat ->
                     CategoryRow(
                         category = cat,
-                        childCount = list.count { it.parentId == cat.id },
                         onEdit = { editing = cat; showDialog = true },
-                        onDelete = { pendingDelete = cat },
-                        onAddChild = {
-                            editing = CategoryEntity(
-                                name = "",
-                                kind = kind,
-                                parentId = cat.id,
-                                icon = cat.icon,
-                                sortOrder = list.size
-                            )
-                            showDialog = true
-                        }
+                        onDelete = { pendingDelete = cat }
                     )
-                    list.filter { it.parentId == cat.id }.forEach { child ->
-                        Surface(
-                            shape = MaterialTheme.shapes.medium,
-                            color = MaterialTheme.colorScheme.surfaceContainerLow,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(start = 40.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { editing = child; showDialog = true }
-                                    .padding(horizontal = 14.dp, vertical = 12.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                SymbolText(
-                                    child.icon,
-                                    size = 18.dp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                Spacer(Modifier.width(10.dp))
-                                Text(child.name, style = MaterialTheme.typography.bodyLarge)
-                                Spacer(Modifier.weight(1f))
-                                TextButton(onClick = { pendingDelete = child }) {
-                                    Text(stringResource(R.string.category_04), color = MaterialTheme.colorScheme.error)
-                                }
-                            }
-                        }
-                    }
                 }
                 item { Spacer(Modifier.height(100.dp)) }
             }
@@ -195,7 +155,6 @@ private fun CategoryManageScreen(repo: LedgerRepository, onBack: () -> Unit) {
         CategoryEditorDialog(
             initial = editing,
             kind = kind,
-            parentName = editing?.parentId?.let { pid -> list.firstOrNull { it.id == pid }?.name },
             onDismiss = { showDialog = false },
             onSave = { entity ->
                 showDialog = false
@@ -254,10 +213,8 @@ private fun KindChip(label: String, selected: Boolean, onClick: () -> Unit) {
 @Composable
 private fun CategoryRow(
     category: CategoryEntity,
-    childCount: Int,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
-    onAddChild: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -269,17 +226,11 @@ private fun CategoryRow(
     ) {
         CategoryGlyph(icon = category.icon, size = 40.dp)
         Spacer(Modifier.width(12.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(category.name, style = MaterialTheme.typography.bodyLarge)
-            if (childCount > 0) {
-                Text(
-                    "$childCount 个子分类",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-        TextButton(onClick = onAddChild) { Text(stringResource(R.string.category_08)) }
+        Text(
+            category.name,
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.weight(1f)
+        )
         TextButton(onClick = onDelete) {
             Text(stringResource(R.string.category_09), color = MaterialTheme.colorScheme.error)
         }
@@ -294,7 +245,6 @@ private fun CategoryRow(
 private fun CategoryEditorDialog(
     initial: CategoryEntity?,
     kind: String,
-    parentName: String?,
     onDismiss: () -> Unit,
     onSave: (CategoryEntity) -> Unit
 ) {
@@ -307,11 +257,8 @@ private fun CategoryEditorDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                when {
-                    initial?.parentId != null -> "新建子分类（父：$parentName）"
-                    isNew -> stringResource(R.string.category_10)
-                    else -> stringResource(R.string.category_11)
-                }
+                if (isNew) stringResource(R.string.category_10)
+                else stringResource(R.string.category_11)
             )
         },
         text = {
