@@ -98,8 +98,19 @@ fun MoreScreen(repo: LedgerRepository) {
                                         R.string.more_02 -> context.startActivity(
                                             android.content.Intent(context, CategoryManageActivity::class.java)
                                         )
-                                        R.string.more_08, R.string.more_10 -> context.startActivity(
+                                        R.string.more_08 -> context.startActivity(
                                             android.content.Intent(context, ImportExportActivity::class.java)
+                                                .putExtra(
+                                                    ImportExportActivity.EXTRA_MODE,
+                                                    ImportExportActivity.MODE_IMPORT
+                                                )
+                                        )
+                                        R.string.more_10 -> context.startActivity(
+                                            android.content.Intent(context, ImportExportActivity::class.java)
+                                                .putExtra(
+                                                    ImportExportActivity.EXTRA_MODE,
+                                                    ImportExportActivity.MODE_EXPORT
+                                                )
                                         )
                                         R.string.more_12 -> context.startActivity(
                                             android.content.Intent(context, BackupRestoreActivity::class.java)
