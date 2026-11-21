@@ -102,6 +102,14 @@ class LedgerRepository(private val db: LedgerDatabase) {
         return true
     }
 
+    /**
+     * 把账户余额直接设成某个值，不生成任何账单。
+     * 导入钱迹数据时用：那边的「平账」记录自带真实余额，按它校准最准。
+     */
+    suspend fun forceAccountBalance(accountId: Long, value: Long) {
+        db.accountDao().setBalance(accountId, value)
+    }
+
     suspend fun findBySourceRef(ref: String) = db.transactionDao().findBySourceRef(ref)
 
     suspend fun refundedSum(id: Long) = db.transactionDao().refundedSum(id)

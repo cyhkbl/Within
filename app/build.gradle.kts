@@ -12,8 +12,8 @@ android {
         applicationId = "io.github.cyhkbl.within"
         minSdk = 26
         targetSdk = 37
-        versionCode = 22
-        versionName = "1.8.2"
+        versionCode = 23
+        versionName = "1.9.0"
         vectorDrawables { useSupportLibrary = true }
     }
 
