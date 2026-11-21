@@ -1,0 +1,306 @@
+#
+# There is insufficient memory for the Java Runtime Environment to continue.
+# Native memory allocation (mmap) failed to map 67108864 bytes. Error detail: G1 virtual space
+# Possible reasons:
+#   The system is out of physical RAM or swap space
+#   This process is running with CompressedOops enabled, and the Java Heap may be blocking the growth of the native heap
+# Possible solutions:
+#   Reduce memory load on the system
+#   Increase physical memory or swap space
+#   Check if swap backing store is full
+#   Decrease Java heap size (-Xmx/-Xms)
+#   Decrease number of Java threads
+#   Decrease Java thread stack sizes (-Xss)
+#   Set larger code cache with -XX:ReservedCodeCacheSize=
+#   JVM is running with Unscaled Compressed Oops mode in which the Java heap is
+#     placed in the first 4GB address space. The Java Heap base address is the
+#     maximum limit for the native heap growth. Please use -XX:HeapBaseMinAddress
+#     to set the Java Heap base and to place the Java Heap above 4GB virtual address.
+# This output file may be truncated or incomplete.
+#
+#  Out of Memory Error (os_windows.cpp:3732), pid=10748, tid=3268
+#
+# JRE version:  (21.0.13.1+2) (build )
+# Java VM: OpenJDK 64-Bit Server VM (21.0.13.1+2-LTS, mixed mode, sharing, tiered, compressed oops, compressed class ptrs, g1 gc, windows-amd64)
+# No core dump will be written. Minidumps are not enabled by default on client versions of Windows
+#
+
+---------------  S U M M A R Y ------------
+
+Command Line: -Xmx64m -Xms64m -Dorg.gradle.appname=gradlew D:\DeepSeekWorkSpace\ledger\\gradle\wrapper\gradle-wrapper.jar --stop
+
+Host: AMD Ryzen 9 8940HX with Radeon Graphics        , 32 cores, 15G,  Windows 11 , 64 bit Build 26100 (10.0.26100.9974)
+Time: Sat Nov 21 17:51:37 2026 elapsed time: 0.058417 seconds (0d 0h 0m 0s)
+
+---------------  T H R E A D  ---------------
+
+Current thread (0x0000000002cef800):  JavaThread "Unknown thread" [_thread_in_vm, id=3268, stack(0x0000000002340000,0x0000000002440000) (1024K)]
+
+Stack: [0x0000000002340000,0x0000000002440000]
+Native frames: (J=compiled Java code, j=interpreted, Vv=VM code, C=native code)
+V  [jvm.dll+0x6dca69]
+V  [jvm.dll+0x8c72e6]
+V  [jvm.dll+0x8c989e]
+V  [jvm.dll+0x8c9f83]
+V  [jvm.dll+0x2850d6]
+V  [jvm.dll+0x6d9385]
+V  [jvm.dll+0x6ccd3a]
+V  [jvm.dll+0x35fe38]
+V  [jvm.dll+0x367a76]
+V  [jvm.dll+0x3b8b8e]
+V  [jvm.dll+0x3b8e38]
+V  [jvm.dll+0x333d4c]
+V  [jvm.dll+0x3348a1]
+V  [jvm.dll+0x89129b]
+V  [jvm.dll+0x3c5b11]
+V  [jvm.dll+0x87a405]
+V  [jvm.dll+0x458bb1]
+V  [jvm.dll+0x45a7a1]
+C  [jli.dll+0x52dc]
+C  [ucrtbase.dll+0x2cd30]
+C  [KERNEL32.DLL+0x2dda7]
+C  [ntdll.dll+0xc9c5c]
+
+
+---------------  P R O C E S S  ---------------
+
+Threads class SMR info:
+_java_thread_list=0x00007ffb19c4f508, length=0, elements={
+}
+
+Java Threads: ( => current thread )
+Total: 0
+
+Other Threads:
+  0x0000000002d09990 WorkerThread "GC Thread#0"                     [id=15416, stack(0x000000001b870000,0x000000001b970000) (1024K)]
+  0x0000000002d0b180 ConcurrentGCThread "G1 Main Marker"            [id=34512, stack(0x000000001b970000,0x000000001ba70000) (1024K)]
+  0x0000000002d10570 WorkerThread "G1 Conc#0"                       [id=8900, stack(0x000000001ba70000,0x000000001bb70000) (1024K)]
+
+[error occurred during error reporting (printing all threads), id 0xc0000005, EXCEPTION_ACCESS_VIOLATION (0xc0000005) at pc=0x00007ffb193366d7]
+VM state: not at safepoint (not fully initialized)
+
+VM Mutex/Monitor currently owned by a thread:  ([mutex/lock_event])
+[0x00007ffb19cc3f80] Heap_lock - owner thread: 0x0000000002cef800
+
+Heap address: 0x00000000fc000000, size: 64 MB, Compressed Oops mode: 32-bit
+
+CDS archive(s) mapped at: [0x0000000000000000-0x0000000000000000-0x0000000000000000), size 0, SharedBaseAddress: 0x0000000800000000, ArchiveRelocationMode: 1.
+Narrow klass base: 0x0000000000000000, Narrow klass shift: 0, Narrow klass range: 0x0
+
+GC Precious Log:
+ CardTable entry size: 512
+ Card Set container configuration: InlinePtr #cards 5 size 8 Array Of Cards #cards 12 size 40 Howl #buckets 4 coarsen threshold 1843 Howl Bitmap #cards 512 size 80 coarsen threshold 460 Card regions per heap region 1 cards per card region 2048
+
+Heap:
+ garbage-first heap   total 0K, used 0K [0x00000000fc000000, 0x0000000100000000)
+  region size 1024K, 0 young (0K), 0 survivors (0K)
+
+[error occurred during error reporting (printing heap information), id 0xc0000005, EXCEPTION_ACCESS_VIOLATION (0xc0000005) at pc=0x00007ffb197263c9]
+GC Heap History (0 events):
+No events
+
+Dll operation events (2 events):
+Event: 0.010 Attempting to load shared library D:\software\Scoop\apps\temurin21-jdk\current\bin\java.dll
+Event: 0.011 Loaded shared library D:\software\Scoop\apps\temurin21-jdk\current\bin\java.dll
+
+Deoptimization events (0 events):
+No events
+
+Classes loaded (0 events):
+No events
+
+Classes unloaded (0 events):
+No events
+
+Classes redefined (0 events):
+No events
+
+Internal exceptions (0 events):
+No events
+
+ZGC Phase Switch (0 events):
+No events
+
+VM Operations (0 events):
+No events
+
+Memory protections (0 events):
+No events
+
+Nmethod flushes (0 events):
+No events
+
+Events (0 events):
+No events
+
+
+Dynamic libraries:
+0x00007ff7814b0000 - 0x00007ff7814be000 	D:\software\Scoop\apps\temurin21-jdk\current\bin\java.exe
+0x00007ffb9f8f0000 - 0x00007ffb9fb5c000 	C:\WINDOWS\SYSTEM32\ntdll.dll
+0x00007ffb9ec90000 - 0x00007ffb9ed5b000 	C:\WINDOWS\System32\KERNEL32.DLL
+0x00007ffb9d0e0000 - 0x00007ffb9d4e9000 	C:\WINDOWS\System32\KERNELBASE.dll
+0x00007ffb9cac0000 - 0x00007ffb9cc0c000 	C:\WINDOWS\System32\ucrtbase.dll
+0x00007ffb4f630000 - 0x00007ffb4f648000 	D:\software\Scoop\apps\temurin21-jdk\current\bin\jli.dll
+0x00007ffb57af0000 - 0x00007ffb57b0e000 	D:\software\Scoop\apps\temurin21-jdk\current\bin\VCRUNTIME140.dll
+0x00007ffb9da00000 - 0x00007ffb9dbde000 	C:\WINDOWS\System32\USER32.dll
+0x00007ffb9ca90000 - 0x00007ffb9cab7000 	C:\WINDOWS\System32\win32u.dll
+0x00007ffb782b0000 - 0x00007ffb78541000 	C:\WINDOWS\WinSxS\amd64_microsoft.windows.common-controls_6595b64144ccf1df_6.0.26100.9818_none_3e071914e3359bdd\COMCTL32.dll
+0x00007ffb9dbf0000 - 0x00007ffb9dc1b000 	C:\WINDOWS\System32\GDI32.dll
+0x00007ffb9d620000 - 0x00007ffb9d6c9000 	C:\WINDOWS\System32\msvcrt.dll
+0x00007ffb9cef0000 - 0x00007ffb9d019000 	C:\WINDOWS\System32\gdi32full.dll
+0x00007ffb9ce40000 - 0x00007ffb9cee3000 	C:\WINDOWS\System32\msvcp_win.dll
+0x00007ffb9d820000 - 0x00007ffb9d851000 	C:\WINDOWS\System32\IMM32.DLL
+0x00007ffb83ae0000 - 0x00007ffb83aec000 	D:\software\Scoop\apps\temurin21-jdk\current\bin\vcruntime140_1.dll
+0x00007ffb39be0000 - 0x00007ffb39c6d000 	D:\software\Scoop\apps\temurin21-jdk\current\bin\msvcp140.dll
+0x00007ffb18ff0000 - 0x00007ffb19da7000 	D:\software\Scoop\apps\temurin21-jdk\current\bin\server\jvm.dll
+0x00007ffb9ed60000 - 0x00007ffb9ee1c000 	C:\WINDOWS\System32\ADVAPI32.dll
+0x00007ffb9f6e0000 - 0x00007ffb9f788000 	C:\WINDOWS\System32\sechost.dll
+0x00007ffb9f790000 - 0x00007ffb9f8a8000 	C:\WINDOWS\System32\RPCRT4.dll
+0x00007ffb9f650000 - 0x00007ffb9f6d0000 	C:\WINDOWS\System32\WS2_32.dll
+0x00007ffb9c8e0000 - 0x00007ffb9c93e000 	C:\WINDOWS\SYSTEM32\POWRPROF.dll
+0x00007ffb8c020000 - 0x00007ffb8c056000 	C:\WINDOWS\SYSTEM32\WINMM.dll
+0x00007ffb94710000 - 0x00007ffb9471b000 	C:\WINDOWS\SYSTEM32\VERSION.dll
+0x00007ffb9c8c0000 - 0x00007ffb9c8d5000 	C:\WINDOWS\SYSTEM32\UMPDC.dll
+0x00007ffb9b6f0000 - 0x00007ffb9b70b000 	C:\WINDOWS\SYSTEM32\kernel.appcore.dll
+0x00007ffb7d5e0000 - 0x00007ffb7d5ea000 	D:\software\Scoop\apps\temurin21-jdk\current\bin\jimage.dll
+0x00007ffb99e10000 - 0x00007ffb9a05c000 	C:\WINDOWS\SYSTEM32\DBGHELP.DLL
+0x00007ffb9ee30000 - 0x00007ffb9f1d5000 	C:\WINDOWS\System32\combase.dll
+0x00007ffb9eb20000 - 0x00007ffb9ebfa000 	C:\WINDOWS\System32\OLEAUT32.dll
+0x00007ffb7cd10000 - 0x00007ffb7cd4b000 	C:\WINDOWS\SYSTEM32\dbgcore.DLL
+0x00007ffb9d4f0000 - 0x00007ffb9d59c000 	C:\WINDOWS\System32\bcryptPrimitives.dll
+0x00007ffb4e210000 - 0x00007ffb4e230000 	D:\software\Scoop\apps\temurin21-jdk\current\bin\java.dll
+
+JVMTI agents: none
+
+dbghelp: loaded successfully - version: 4.0.5 - missing functions: none
+symbol engine: initialized successfully - sym options: 0x614 - pdb path: .;D:\software\Scoop\apps\temurin21-jdk\current\bin;C:\WINDOWS\SYSTEM32;C:\WINDOWS\WinSxS\amd64_microsoft.windows.common-controls_6595b64144ccf1df_6.0.26100.9818_none_3e071914e3359bdd;D:\software\Scoop\apps\temurin21-jdk\current\bin\server
+
+VM Arguments:
+jvm_args: -Xmx64m -Xms64m -Dorg.gradle.appname=gradlew 
+java_command: D:\DeepSeekWorkSpace\ledger\\gradle\wrapper\gradle-wrapper.jar --stop
+java_class_path (initial): D:\DeepSeekWorkSpace\ledger\\gradle\wrapper\gradle-wrapper.jar
+Launcher Type: SUN_STANDARD
+
+[Global flags]
+     intx CICompilerCount                          = 15                                        {product} {ergonomic}
+     uint ConcGCThreads                            = 6                                         {product} {ergonomic}
+     uint G1ConcRefinementThreads                  = 23                                        {product} {ergonomic}
+   size_t G1HeapRegionSize                         = 1048576                                   {product} {ergonomic}
+    uintx GCDrainStackTargetSize                   = 64                                        {product} {ergonomic}
+   size_t InitialHeapSize                          = 67108864                                  {product} {command line}
+   size_t MarkStackSize                            = 4194304                                   {product} {ergonomic}
+   size_t MaxHeapSize                              = 67108864                                  {product} {command line}
+   size_t MinHeapDeltaBytes                        = 1048576                                   {product} {ergonomic}
+   size_t MinHeapSize                              = 67108864                                  {product} {command line}
+    uintx NonNMethodCodeHeapSize                   = 8192380                                {pd product} {ergonomic}
+    uintx NonProfiledCodeHeapSize                  = 121732930                              {pd product} {ergonomic}
+    uintx ProfiledCodeHeapSize                     = 121732930                              {pd product} {ergonomic}
+    uintx ReservedCodeCacheSize                    = 251658240                              {pd product} {ergonomic}
+     bool SegmentedCodeCache                       = true                                      {product} {ergonomic}
+   size_t SoftMaxHeapSize                          = 67108864                               {manageable} {ergonomic}
+     bool UseCompressedOops                        = true                           {product lp64_product} {ergonomic}
+     bool UseG1GC                                  = true                                      {product} {ergonomic}
+     bool UseLargePagesIndividualAllocation        = false                                  {pd product} {ergonomic}
+
+Logging:
+Log output configuration:
+ #0: stdout all=warning uptime,level,tags foldmultilines=false
+ #1: stderr all=off uptime,level,tags foldmultilines=false
+
+Release file:
+<release file has not been read>
+Environment Variables:
+JAVA_HOME=D:\software\Scoop\apps\temurin21-jdk\current
+PATH=D:\software\Scoop\apps\temurin21-jdk\current\bin;D:\software\Android\Sdk\build-tools\37.0.0;D:\software\Scoop\apps\pwsh\current;C:\ProgramData\scoop\shims;D:\software\Scoop\apps\openssh\current;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\NVIDIA Corporation\NVIDIA App\NvDLISR;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\dotnet\;C:\WINDOWS\System32\OpenSSH\;D:\software\Sunshine;D:\software\Sunshine\tools;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0;C:\Program Files\Tailscale\;D:\software\Scoop\apps\mpv\current;D:\software\Scoop\apps\temurin21-jdk\current\bin;D:\software\Scoop\apps\vscode\current\bin;D:\software\Scoop\apps\nodejs\current\bin;D:\software\Scoop\apps\nodejs\current;D:\software\Scoop\apps\python\current\Scripts;D:\software\Scoop\apps\python\current;D:\software\Scoop\apps\starship\current;D:\software\Scoop\apps\gcc\current\bin;D:\software\Scoop\shims;D:\softwate\Scoop\shims;C:\Users\Admin\AppData\Local\Microsoft\WindowsApps;C:\Users\Admin\.local\bin;C:\Users\Admin\AppData\Local\Microsoft\WindowsApps;C:\Users\Admin\AppData\Local\Programs\Antigravity IDE\bin;C:\Users\Admin\AppData\Local\Microsoft\WinGet\Links;C:\Users\Admin\AppData\Local\Microsoft\WinGet\Packages\Hanselman.MaximizeToVirtualDesktop_Microsoft.Winget.Source_8wekyb3d8bbwe;C:\Users\Admin\.dotnet\tools;C:\Users\Admin\AppData\Local\Microsoft\WinGet\Packages\cyhkbl.MaximizeToVirtualDesktop__DefaultSource;C:\Users\Admin\AppData\Local\Programs\Cua\cua-driver\bin;C:\Program Files\Detaroxz\DarkSwitch;D:\software\texlive\2026\bin\windows;C:\Users\Admin\.dotnet\tools;D:\software\deepseek\resources\runtime\cli\bin;C:\Users\Admin\.dotnet\tools;D:\software\Android\Sdk\platform-tools;D:\software\Android\Sdk\cmdline-tools\latest\bin;C:\Users\Admin\.dotnet\tools
+USERNAME=Admin
+OS=Windows_NT
+PROCESSOR_IDENTIFIER=AMD64 Family 25 Model 97 Stepping 2, AuthenticAMD
+TMP=C:\Users\Admin\AppData\Local\Temp
+TEMP=C:\Users\Admin\AppData\Local\Temp
+
+
+
+
+Periodic native trim disabled
+
+---------------  S Y S T E M  ---------------
+
+OS:
+ Windows 11 , 64 bit Build 26100 (10.0.26100.9974)
+OS uptime: 1 days 21:36 hours
+Hyper-V role detected
+
+CPU: total 32 (initial active 32) (32 cores per cpu, 2 threads per core) family 25 model 97 stepping 2 microcode 0xa60120c, cx8, cmov, fxsr, ht, mmx, 3dnowpref, sse, sse2, sse3, ssse3, sse4a, sse4.1, sse4.2, popcnt, lzcnt, tsc, tscinvbit, avx, avx2, aes, erms, clmul, bmi1, bmi2, adx, avx512f, avx512dq, avx512cd, avx512bw, avx512vl, sha, fma, vzeroupper, avx512_vpopcntdq, avx512_vpclmulqdq, avx512_vaes, avx512_vnni, clflush, clflushopt, avx512_vbmi2, avx512_vbmi, hv, rdtscp, rdpid, fsrm, gfni, avx512_bitalg, f16c, cet_ss, avx512_ifma
+Processor Information for processor 0
+  Max Mhz: 2401, Current Mhz: 1979, Mhz Limit: 2401
+Processor Information for processor 1
+  Max Mhz: 2401, Current Mhz: 1979, Mhz Limit: 2401
+Processor Information for processor 2
+  Max Mhz: 2401, Current Mhz: 2401, Mhz Limit: 2401
+Processor Information for processor 3
+  Max Mhz: 2401, Current Mhz: 1979, Mhz Limit: 2401
+Processor Information for processor 4
+  Max Mhz: 2401, Current Mhz: 1979, Mhz Limit: 2401
+Processor Information for processor 5
+  Max Mhz: 2401, Current Mhz: 1979, Mhz Limit: 2401
+Processor Information for processor 6
+  Max Mhz: 2401, Current Mhz: 2401, Mhz Limit: 2401
+Processor Information for processor 7
+  Max Mhz: 2401, Current Mhz: 1979, Mhz Limit: 2401
+Processor Information for processor 8
+  Max Mhz: 2401, Current Mhz: 1979, Mhz Limit: 2401
+Processor Information for processor 9
+  Max Mhz: 2401, Current Mhz: 1979, Mhz Limit: 2401
+Processor Information for processor 10
+  Max Mhz: 2401, Current Mhz: 1979, Mhz Limit: 2401
+Processor Information for processor 11
+  Max Mhz: 2401, Current Mhz: 1979, Mhz Limit: 2401
+Processor Information for processor 12
+  Max Mhz: 2401, Current Mhz: 1979, Mhz Limit: 2401
+Processor Information for processor 13
+  Max Mhz: 2401, Current Mhz: 1979, Mhz Limit: 2401
+Processor Information for processor 14
+  Max Mhz: 2401, Current Mhz: 1979, Mhz Limit: 2401
+Processor Information for processor 15
+  Max Mhz: 2401, Current Mhz: 1979, Mhz Limit: 2401
+Processor Information for processor 16
+  Max Mhz: 2401, Current Mhz: 1979, Mhz Limit: 2401
+Processor Information for processor 17
+  Max Mhz: 2401, Current Mhz: 2401, Mhz Limit: 2401
+Processor Information for processor 18
+  Max Mhz: 2401, Current Mhz: 1979, Mhz Limit: 2401
+Processor Information for processor 19
+  Max Mhz: 2401, Current Mhz: 1979, Mhz Limit: 2401
+Processor Information for processor 20
+  Max Mhz: 2401, Current Mhz: 1979, Mhz Limit: 2401
+Processor Information for processor 21
+  Max Mhz: 2401, Current Mhz: 1979, Mhz Limit: 2401
+Processor Information for processor 22
+  Max Mhz: 2401, Current Mhz: 1979, Mhz Limit: 2401
+Processor Information for processor 23
+  Max Mhz: 2401, Current Mhz: 1979, Mhz Limit: 2401
+Processor Information for processor 24
+  Max Mhz: 2401, Current Mhz: 2401, Mhz Limit: 2401
+Processor Information for processor 25
+  Max Mhz: 2401, Current Mhz: 1979, Mhz Limit: 2401
+Processor Information for processor 26
+  Max Mhz: 2401, Current Mhz: 1979, Mhz Limit: 2401
+Processor Information for processor 27
+  Max Mhz: 2401, Current Mhz: 1979, Mhz Limit: 2401
+Processor Information for processor 28
+  Max Mhz: 2401, Current Mhz: 1979, Mhz Limit: 2401
+Processor Information for processor 29
+  Max Mhz: 2401, Current Mhz: 1979, Mhz Limit: 2401
+Processor Information for processor 30
+  Max Mhz: 2401, Current Mhz: 1979, Mhz Limit: 2401
+Processor Information for processor 31
+  Max Mhz: 2401, Current Mhz: 1979, Mhz Limit: 2401
+
+Memory: 4k page, system-wide physical 15584M (1931M free)
+TotalPageFile size 23776M (AvailPageFile size 7M)
+current process WorkingSet (physical memory assigned to process): 13M, peak: 13M
+current process commit charge ("private bytes"): 90M, peak: 154M
+
+vm_info: OpenJDK 64-Bit Server VM (21.0.13.1+2-LTS) for windows-amd64 JRE (21.0.13.1+2-LTS), built on 2026-11-17T00:00:00Z by "admin" with MS VC++ 17.12 (VS2022)
+
+END.

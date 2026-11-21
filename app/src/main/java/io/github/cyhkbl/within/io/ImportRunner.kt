@@ -35,6 +35,14 @@ data class ImportSummary(
  */
 class ImportRunner(private val repo: LedgerRepository) {
 
+    /**
+     * 钱迹的「平账」记录长这样：平账(126.73 ~ 132.4)，括号里是调整前后的账户余额。
+     * 这个新值就是那一刻的真实余额，比拿流水一分分累加可靠得多——
+     * 因为导出的账单里不含账户初始余额，纯累加会让长期净流出的账户变成负数。
+     */
+    private val reconcilePattern =
+        Regex("""平账\s*[（(]\s*([-\d.]+)\s*[~～]\s*([-\d.]+)\s*[）)]""")
+
     suspend fun preview(outcome: ParseOutcome): ImportPreview {
         val accounts = repo.accountsAllOnce().associateBy { it.name }
         val dedupe = DedupeState(
@@ -134,6 +142,14 @@ class ImportRunner(private val repo: LedgerRepository) {
                     )
                 )
                 if (row.externalId.isNotBlank()) externalMap[row.externalId] = id
+
+                // 平账记录直接把余额校准到它记录的新值，
+                // 否则从 0 开始累加流水会和钱迹对不上（银行账户尤其容易算成负数）
+                reconcilePattern.find(row.note)?.let { m ->
+                    m.groupValues.getOrNull(2)?.toDoubleOrNull()?.let { target ->
+                        repo.forceAccountBalance(account.id, Math.round(target * 100))
+                    }
+                }
                 imported++
             } catch (t: Throwable) {
                 issues.add(ParseIssue(row.lineNo, "写入失败：${t.message ?: "未知错误"}", row.note))
