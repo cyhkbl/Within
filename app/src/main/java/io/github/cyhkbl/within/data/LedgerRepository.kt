@@ -129,6 +129,28 @@ class LedgerRepository(private val db: LedgerDatabase) {
         db.transactionDao().deleteAll()
         db.accountDao().resetBalances()
     }
+
+    /**
+     * 按现有账单把每个账户的余额从头算一遍。
+     *
+     * 批量导入时余额是一笔笔增量累加的，中间任何一处漏加都会让结果永久偏掉，
+     * 而且很难定位。导入结束后直接按账单重算，余额就一定和账单对得上。
+     */
+    suspend fun recalculateBalances() = db.withTransaction {
+        db.accountDao().resetBalances()
+        val all = db.transactionDao().listRecent(1_000_000)
+        for (tx in all) {
+            when (tx.kind) {
+                "EXPENSE" -> db.accountDao().addBalance(tx.accountId, -tx.amount)
+                "INCOME" -> db.accountDao().addBalance(tx.accountId, tx.amount)
+                "TRANSFER" -> {
+                    db.accountDao().addBalance(tx.accountId, -tx.amount)
+                    tx.toAccountId?.let { db.accountDao().addBalance(it, tx.amount) }
+                }
+                "REFUND" -> db.accountDao().addBalance(tx.accountId, tx.amount)
+            }
+        }
+    }
     suspend fun accountsAllOnce() = db.accountDao().listAll()
 
     private suspend fun applyBalanceDelta(tx: TransactionEntity, sign: Int) {
