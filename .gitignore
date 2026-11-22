@@ -14,3 +14,11 @@ captures/
 Thumbs.db
 samples/
 
+
+# 根目录的一次性脚本、截图、设备转储不进仓库
+/_*.py
+/*.png
+/mika-*
+/hs_err_*.log
+/replay_*.log
+/build-out.txt

@@ -1,9 +1,5 @@
 <div align="center">
 
-<img src="docs/screenshots/01-home.png" width="200" alt="Home" />
-<img src="docs/screenshots/02-entry.png" width="200" alt="Add entry" />
-<img src="docs/screenshots/04-refund.png" width="200" alt="Refund" />
-<img src="docs/screenshots/03-appearance.png" width="200" alt="Appearance" />
 
 # 量入为出 · Within
 
