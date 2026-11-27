@@ -54,8 +54,9 @@ class HomeViewModel(private val repo: LedgerRepository) : ViewModel() {
         repo.accountsAll(),
         repo.totalBalance()
     ) { ym, rawTxs, cats, accounts, total ->
-        // 余额调整只为让账户余额自洽，不当作真实收支，列表和统计里都不出现
-        val txs = rawTxs.filter { it.source != "ADJUST" }
+        // 平账（改余额自动生成）是真实收支，要出现在列表和统计里；
+        // 只有导入时的期初校准才不进，而那条走的是重算余额、不生成账单。
+        val txs = rawTxs
         val catMap = cats.associateBy { it.id }
         val accMap = accounts.associateBy { it.id }
 

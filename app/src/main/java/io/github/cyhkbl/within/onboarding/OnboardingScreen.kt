@@ -122,7 +122,9 @@ fun OnboardingScreen(onFinish: () -> Unit) {
         )
     }
 
-    val checks = items.associateWith { it.check(context) }
+    // tick 既要自增、也要被读取，否则 Compose 不知道这个页面依赖它，
+    // 权限授完返回时不会重组，已完成的项就永远停在「未开启」。
+    val checks = remember(tick) { items.associateWith { it.check(context) } }
     val pendingRequired = items.filter { !it.optional && checks[it] != true }
     val pendingOptional = items.filter { it.optional && checks[it] != true }
     val doneItems = items.filter { checks[it] == true }

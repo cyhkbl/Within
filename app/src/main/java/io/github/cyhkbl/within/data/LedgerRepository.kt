@@ -88,10 +88,16 @@ class LedgerRepository(private val db: LedgerDatabase) {
         val account = accountById(accountId) ?: return false
         val diff = targetBalance - account.balance
         if (diff == 0L) return true
+        val income = diff > 0
+        // 平账要走正常收支：分类落到「其它」，这样统计和分类排行里都看得到
+        val category = db.categoryDao()
+            .listAll()
+            .firstOrNull { it.kind == (if (income) "INCOME" else "EXPENSE") && it.name == "其它" }
         insertTransaction(
             TransactionEntity(
-                kind = if (diff > 0) "INCOME" else "EXPENSE",
+                kind = if (income) "INCOME" else "EXPENSE",
                 amount = kotlin.math.abs(diff),
+                categoryId = category?.id,
                 accountId = accountId,
                 note = "平账",
                 timestamp = System.currentTimeMillis(),

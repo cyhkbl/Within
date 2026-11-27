@@ -81,8 +81,7 @@ fun StatsScreen(repo: LedgerRepository) {
     var refundedOriginIds by remember { mutableStateOf(emptySet<Long>()) }
     LaunchedEffect(Unit) { refundedOriginIds = repo.refundedOriginIds().toSet() }
     val txs = rawTxs.filter {
-        it.source != "ADJUST" &&
-            it.source != "REFUND" &&
+        it.source != "REFUND" &&
             it.refundedFromId == null &&
             it.categoryId !in refundCategoryIds &&
             it.id !in refundedOriginIds

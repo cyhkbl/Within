@@ -126,6 +126,7 @@
     <string name="detail_21">确定删除这笔账单？</string>
     <string name="detail_22">取消</string>
     <string name="detail_23">删除</string>
+    <string name="detail_edit">编辑这笔账单</string>
     <string name="detail_24">删除这笔</string>
     <string name="detail_25">退款</string>
     <string name="detail_26">退款：</string>

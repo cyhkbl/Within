@@ -26,13 +26,23 @@ object PaymentParser {
         Regex("""(?:金额|实付|付款|支付|消费)[^0-9]{0,6}([0-9][0-9,]*\.?[0-9]{0,2})""")
     )
 
+    /**
+     * 收款方向的关键词。
+     *
+     * 之前只有「转入」没有「转账」，结果「张三向你转账 1.00 元」这类通知
+     * 既不算收入也不算支出，直接被丢掉——收款不弹窗就是这么来的。
+     */
     private val incomeKeywords = listOf(
-        "收款", "到账", "退款", "已退", "转入", "收入", "红包已领取"
+        "收款", "到账", "入账", "已收款", "退款", "已退", "转入", "收入",
+        "红包已领取", "向你转账", "收到转账", "收到红包", "收到一笔", "收款到账"
     )
 
     private val expenseKeywords = listOf(
         "支付成功", "付款成功", "支付", "付款", "消费", "扣款", "转出", "扣费", "交易成功"
     )
+
+    /** 明确指向支出的措辞，用来压过「转账」这种中性词。 */
+    private val outgoingHints = listOf("向你付款", "你向", "转出", "支付成功", "付款成功")
 
     private val noiseKeywords = listOf(
         "失败", "已取消", "取消支付", "待支付", "未支付", "余额不足", "验证码", "排队中"
@@ -57,7 +67,9 @@ object PaymentParser {
         val hasExpense = expenseKeywords.any { content.contains(it) }
         if (!isIncome && !hasExpense) return null
 
-        val kind = if (isIncome) "INCOME" else "EXPENSE"
+        // 「转账」是中性词，得看有没有明确的转出措辞
+        val outgoing = outgoingHints.any { content.contains(it) }
+        val kind = if (isIncome && !outgoing) "INCOME" else "EXPENSE"
         val merchant = extractMerchant(content) ?: defaultMerchant(packageName, title)
 
         return PaymentDraft(

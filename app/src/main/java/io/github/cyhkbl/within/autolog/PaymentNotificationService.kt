@@ -37,7 +37,13 @@ class PaymentNotificationService : NotificationListenerService() {
         val summary = extras.getCharSequence(Notification.EXTRA_SUMMARY_TEXT)?.toString().orEmpty()
         val sub = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString().orEmpty()
 
-        val draft = PaymentParser.parseNotification(pkg, title, "$text $big $summary $sub") ?: return
+        val draft = PaymentParser.parseNotification(pkg, title, "$text $big $summary $sub")
+        android.util.Log.i(
+            "WithinAuto",
+            "通知 $pkg | title=[$title] text=[$text] big=[$big] sub=[$sub] => " +
+                (draft?.let { "${it.kind} ${it.amount} 分 ${it.merchant}" } ?: "未识别")
+        )
+        if (draft == null) return
         AutoRecordGate.offer(draft)
     }
 

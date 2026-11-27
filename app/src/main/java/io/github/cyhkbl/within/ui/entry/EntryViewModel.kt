@@ -6,6 +6,7 @@ import io.github.cyhkbl.within.data.LedgerRepository
 import io.github.cyhkbl.within.data.db.AccountEntity
 import io.github.cyhkbl.within.data.db.CategoryEntity
 import io.github.cyhkbl.within.data.db.TransactionEntity
+import io.github.cyhkbl.within.util.MoneyUtils
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,16 +28,38 @@ data class EntryUiState(
 
 class EntryViewModel(
     private val repo: LedgerRepository,
-    initialKind: String = "EXPENSE"
+    initialKind: String = "EXPENSE",
+    private val editingId: Long? = null
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(EntryUiState(kind = initialKind))
+    private val _state = MutableStateFlow(EntryUiState(kind = initialKind, editingId = editingId))
     val state: StateFlow<EntryUiState> = _state.asStateFlow()
+
+    /** 编辑时保留原账单的这几个字段，保存时原样带回去。 */
+    private var editingOriginal: TransactionEntity? = null
 
     /** 全量分类缓存：切换收支时要重新按 kind 过滤，不能只依赖 Flow 的重新发射。 */
     private var allCategories: List<CategoryEntity> = emptyList()
 
     init {
+        if (editingId != null) {
+            viewModelScope.launch {
+                repo.transactionById(editingId)?.let { tx ->
+                    editingOriginal = tx
+                    _state.update { s ->
+                        s.copy(
+                            kind = tx.kind,
+                            amountInput = MoneyUtils.formatPlain(tx.amount),
+                            note = tx.note,
+                            timestamp = tx.timestamp,
+                            categoryId = tx.categoryId,
+                            accountId = tx.accountId,
+                            editingId = tx.id
+                        )
+                    }
+                }
+            }
+        }
         viewModelScope.launch {
             repo.categories().collect { cats ->
                 allCategories = cats
@@ -122,17 +145,32 @@ class EntryViewModel(
         val amount = parseAmount(s.amountInput) ?: return
         val accountId = s.accountId ?: return
         viewModelScope.launch {
-            val entity = TransactionEntity(
-                kind = s.kind,
-                amount = amount,
-                categoryId = s.categoryId,
-                accountId = accountId,
-                note = s.note,
-                timestamp = s.timestamp,
-                source = "MANUAL"
-            )
-            val id = repo.insertTransaction(entity)
-            onDone(id)
+            val original = editingOriginal
+            if (original != null) {
+                // 改账单：金额、分类、账户、时间、备注都能改，其余字段（来源、退款关联、导入批次）保持原样
+                val updated = original.copy(
+                    kind = s.kind,
+                    amount = amount,
+                    categoryId = s.categoryId,
+                    accountId = accountId,
+                    note = s.note,
+                    timestamp = s.timestamp
+                )
+                repo.updateTransaction(original, updated)
+                onDone(updated.id)
+            } else {
+                val entity = TransactionEntity(
+                    kind = s.kind,
+                    amount = amount,
+                    categoryId = s.categoryId,
+                    accountId = accountId,
+                    note = s.note,
+                    timestamp = s.timestamp,
+                    source = "MANUAL"
+                )
+                val id = repo.insertTransaction(entity)
+                onDone(id)
+            }
         }
     }
 

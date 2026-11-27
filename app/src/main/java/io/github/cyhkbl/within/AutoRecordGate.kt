@@ -31,12 +31,19 @@ object AutoRecordGate {
 
     @Synchronized
     fun offer(incoming: PaymentDraft) {
-        if (!autoEnabled) return
-        if (!recentFingerprints.add(incoming.fingerprint)) return
+        if (!autoEnabled) {
+            Log.i("WithinAuto", "闸门：自动记账已关闭，丢弃")
+            return
+        }
+        if (!recentFingerprints.add(incoming.fingerprint)) {
+            Log.i("WithinAuto", "闸门：指纹重复，丢弃 ${incoming.fingerprint}")
+            return
+        }
         if (recentFingerprints.size > 30) {
             val oldest = recentFingerprints.first()
             recentFingerprints.remove(oldest)
         }
+        Log.i("WithinAuto", "闸门：接受草稿 ${incoming.kind} ${incoming.amount} 分")
         _draft.value = incoming
         showPrompt(incoming)
     }
@@ -57,11 +64,14 @@ object AutoRecordGate {
         }
         // Android 10 之后后台 startActivity 可能既不起作用也不抛异常，
         // 所以不依赖它的返回值，一律再补一条全屏意图通知兜底。
-        try {
+        val started = try {
             context.startActivity(intent)
+            true
         } catch (t: Throwable) {
-            Log.w("AutoRecordGate", "直接拉起记账弹窗失败，改为通知", t)
+            Log.w("WithinAuto", "闸门：直接拉起记账弹窗失败，改为通知", t)
+            false
         }
+        Log.i("WithinAuto", "闸门：startActivity 返回 $started，随后发兜底通知")
         Notifier.postDraft(context, draft)
     }
 }

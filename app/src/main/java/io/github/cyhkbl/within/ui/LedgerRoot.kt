@@ -114,7 +114,7 @@ fun LedgerRoot(repo: LedgerRepository) {
                         onPrevMonth = vm::previousMonth,
                         onNextMonth = vm::nextMonth,
                     onSelectMonth = vm::setMonth,
-                        onAdd = { nav.navigate("entry") },
+                        onAdd = { nav.navigate("entry?txId=-1") },
                         onOpenCalendar = { nav.navigate("calendar") },
                         onTxClick = { tx -> nav.navigate("detail/${tx.id}") }
                     )
@@ -123,12 +123,19 @@ fun LedgerRoot(repo: LedgerRepository) {
         }
 
         composable(
-            route = "entry",
+            route = "entry?txId={txId}",
+            arguments = listOf(
+                navArgument("txId") {
+                    type = NavType.LongType
+                    defaultValue = -1L
+                }
+            ),
             enterTransition = { slideInVertically(tween(280)) { it } + fadeIn(tween(180)) },
             exitTransition = { slideOutVertically(tween(260)) { it } + fadeOut(tween(160)) }
-        ) {
-            val entryFactory = remember(repo) {
-                viewModelFactory { initializer { EntryViewModel(repo) } }
+        ) { backStackEntry ->
+            val editingId = backStackEntry.arguments?.getLong("txId")?.takeIf { it > 0 }
+            val entryFactory = remember(repo, editingId) {
+                viewModelFactory { initializer { EntryViewModel(repo, editingId = editingId) } }
             }
             val vm: EntryViewModel = viewModel(factory = entryFactory)
             val state by vm.state.collectAsState()
@@ -160,7 +167,8 @@ fun LedgerRoot(repo: LedgerRepository) {
             TransactionDetailScreen(
                 repo = repo,
                 txId = backStackEntry.arguments?.getLong("id") ?: 0L,
-                onBack = { nav.popBackStack() }
+                onBack = { nav.popBackStack() },
+                onEdit = { id -> nav.navigate("entry?txId=$id") }
             )
         }
 

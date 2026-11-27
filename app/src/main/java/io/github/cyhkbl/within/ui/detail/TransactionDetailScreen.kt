@@ -59,7 +59,8 @@ import io.github.cyhkbl.within.R
 fun TransactionDetailScreen(
     repo: LedgerRepository,
     txId: Long,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onEdit: (Long) -> Unit = {}
 ) {
     var reloadTick by remember { mutableStateOf(0) }
     val tx by produceState<TransactionEntity?>(initialValue = null, txId, reloadTick) {
@@ -278,6 +279,18 @@ fun TransactionDetailScreen(
         }
 
         Spacer(Modifier.height(20.dp))
+
+        Button(
+            onClick = { onEdit(current.id) },
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.large
+        ) {
+            SymbolText("edit", size = 20.dp, color = MaterialTheme.colorScheme.onPrimary)
+            Spacer(Modifier.width(8.dp))
+            Text(stringResource(R.string.detail_edit), fontWeight = FontWeight.Medium, fontSize = 16.sp)
+        }
+
+        Spacer(Modifier.height(10.dp))
 
         if (refundable) {
             Button(
